@@ -1,30 +1,21 @@
-# /// script
-# dependencies = [
-#   "matplotlib",
-#   "mod",
-# ]
-# ///
-
-from typing import Generator
 import matplotlib
 import matplotlib.pyplot as plt
 from mod import Mod
 
-matplotlib.use("TkAgg")
+from defs import IntegerRNG, RealRNG
+
+matplotlib.use("QtAgg")
 
 
-def lcg(m: int, a: int, c: int, x_0: int) -> Generator[int]:
+def lcg(m: int, a: int, c: int, x_0: int) -> IntegerRNG:
     x_n = Mod(x_0, m)
     while True:
         x_n = a * x_n + c
         yield int(x_n)
 
 
-def lcg_real(m: int, a: float, c: float, x_0: float) -> Generator[float]:
-    x_n = Mod(x_0, m)
-    while True:
-        x_n = a * x_n + c
-        yield x_n / m
+def lcg_real(m: int, a: int, c: int, x_0: int) -> RealRNG:
+    yield from (x_n / m for x_n in lcg(m, a, c, x_0))
 
 
 if __name__ == "__main__":

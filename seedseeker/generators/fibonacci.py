@@ -1,11 +1,12 @@
 from collections import deque
 from itertools import islice
-from typing import Generator
 
 from mod import Mod
 
+from defs import IntegerRNG, RealRNG
 
-def fibonacci(r: int, s: int, seed: list[int], m: int) -> Generator[int]:
+
+def fibonacci(r: int, s: int, seed: list[int], m: int) -> IntegerRNG:
     assert len(seed) == max(r, s), f"Seed must be of length {max(r, s)}"
     queue = deque(Mod(n, m) for n in seed)
 
@@ -16,6 +17,10 @@ def fibonacci(r: int, s: int, seed: list[int], m: int) -> Generator[int]:
         yield int(value)
         queue.append(value)
         queue.popleft()
+
+
+def fibonacci_real(r: int, s: int, seed: list[int], m: int) -> RealRNG:
+    yield from (x_n / m for x_n in fibonacci(r, s, seed, m))
 
 
 if __name__ == "__main__":
