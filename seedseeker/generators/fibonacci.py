@@ -7,14 +7,18 @@ from defs import IntegerRNG, RealRNG
 
 
 def fibonacci(r: int, s: int, seed: list[int], m: int) -> IntegerRNG:
-    assert len(seed) == max(r, s), f"Seed must be of length {max(r, s)}"
+    assert len(seed) == max(r, s), f"Seed must be of length max(r, s) ({max(r, s)})"
     queue = deque(Mod(n, m) for n in seed)
 
     while True:
         value = queue[-r] + queue[-s]
+
+        # Check for "overflow" (in mod m) and add carry
         if value < queue[-r] or value < queue[-s]:
             value += 1
+
         yield int(value)
+
         queue.append(value)
         queue.popleft()
 

@@ -1,5 +1,7 @@
 from itertools import islice
 
+from defs import IntegerRNG
+
 N = 624
 M = 397
 W = 32
@@ -16,7 +18,7 @@ C = 0xEFC60000
 F = 1812433253
 
 
-def mersenne_twister(seed):
+def mersenne_twister(seed: int) -> IntegerRNG:
     state_array = [0] * N
     state_index = 0
 
@@ -48,11 +50,9 @@ def mersenne_twister(seed):
         state_index = k
 
         y = x ^ (x >> U)
-        y = y ^ ((y << S) & B)
-        y = y ^ ((y << T) & C)
-        z = y ^ (y >> L)
-
-        yield z
+        y ^= (y << S) & B
+        y ^= (y << T) & C
+        yield y >> L
 
 
 def mersenne_twister_real(seed):
@@ -61,4 +61,3 @@ def mersenne_twister_real(seed):
 
 if __name__ == "__main__":
     print(*islice(mersenne_twister(19650218), 100), sep=", ")
-    print(*islice(mersenne_twister_real(19650218), 100), sep=", ")

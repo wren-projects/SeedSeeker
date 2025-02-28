@@ -21,7 +21,7 @@ class CountingIterator[T]:
 class BufferingIterator[T](Iterator[T]):
     def __init__(self, iterator: Iterator[T], max_size=0):
         self.iterator = iterator
-        self.saved = deque(maxlen=max_size)
+        self.buffer = deque(maxlen=max_size)
 
     def __iter__(self):
         return self
@@ -29,9 +29,19 @@ class BufferingIterator[T](Iterator[T]):
     def __next__(self):
         value = next(self.iterator)
 
-        if self.saved.maxlen and len(self.saved) == self.saved.maxlen:
-            self.saved.popleft()
+        if self.buffer.maxlen and len(self.buffer) == self.buffer.maxlen:
+            self.buffer.popleft()
 
-        self.saved.append(value)
+        self.buffer.append(value)
 
         return value
+
+
+def drop[T](iter: Iterator[T], n: int) -> Iterator[T]:
+    for _ in range(n):
+        try:
+            next(iter)
+        except StopIteration:
+            break
+
+    return iter
