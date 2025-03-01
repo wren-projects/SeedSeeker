@@ -32,9 +32,16 @@ def fibonacci_real(r: int, s: int, seed: list[int], m: int) -> RealRNG:
     yield from (x_n / m for x_n in fibonacci(r, s, seed, m))
 
 
-def reverse_fibonacci(generator: IntegerRNG, maxParam=1000):
+def reverse_fibonacci(
+    generator: IntegerRNG, maxParam: int = 1000
+) -> None | tuple[int, int, int, bool]:
     """
-    reverses lagged fibonacci PRNG that relies on addion of 2 elements
+    reverses configuration fibonacci PRNG that relies on addion of 2 elements
+
+    Configuration consists of M, R, S, C in Fibonacci PRNG given by the formula:
+    a(i) = (a(i-R) + a(i-S))%M
+
+    Sometimes, a carry is added to the formula. C is a boolean representing if the PRNG uses carry.
     """
     data = list(islice(generator, maxParam + 100))
     output = None
