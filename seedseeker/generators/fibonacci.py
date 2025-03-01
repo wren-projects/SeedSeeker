@@ -49,8 +49,6 @@ def reverse_fibonacci(
         for s in range(1, r):
             assumed_mod = None
             with_carry = False
-            # if not (r == 607 and s == 334):
-            #    continue
             for i in range(r, len(data)):
                 new_assumed_mod = data[i - r] + data[i - s] - data[i]
                 if abs(new_assumed_mod) <= 1:
