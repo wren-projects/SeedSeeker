@@ -1,44 +1,43 @@
 from typing import Iterator
 import random
+from defs import IntegerRNG
 
 
-def ran3(seed: int):
+def ran3(seed: int) -> IntegerRNG:
     """
     based on the C# implementation
+
+    See:
+        https://github.com/wren-projects/SeedSeeker/issues/4
     """
     MAX_INT = 2**32
     MSEED = 161803398
 
     REAL_SEED = MSEED - abs(seed)
-    SeedArray = [0] * 56
+    seed_array = [0] * 56
 
-    SeedArray[55] = REAL_SEED
+    seed_array[55] = REAL_SEED
     mj = REAL_SEED
 
     next_seed = 1
 
-    fib = [0, 1]
-    while len(fib) < 56:
-        fib.append(fib[-1] + fib[-2])
-
     for i in range(1, 55):
         ii = (21 * i) % 55
 
-        print(next_seed, ((-1) ** i * (fib[i - 1] * REAL_SEED - fib[i])) % MAX_INT)
-        SeedArray[ii] = next_seed
+        seed_array[ii] = next_seed
 
         next_seed = mj - next_seed
 
         if next_seed < 0:
             next_seed += MAX_INT
 
-        mj = SeedArray[ii]
+        mj = seed_array[ii]
 
-    for k in range(1, 5):
+    for _ in range(1, 5):
         for i in range(1, 56):
-            SeedArray[i] -= SeedArray[1 + (i + 30) % 55]
-        if SeedArray[i] < 0:
-            SeedArray[i] += MAX_INT
+            seed_array[i] -= seed_array[1 + (i + 30) % 55]
+            if seed_array[i] < 0:
+                seed_array[i] += MAX_INT
 
     pointerA = 0
     pointerB = 21
@@ -51,18 +50,17 @@ def ran3(seed: int):
         if pointerB >= 56:
             pointerB = 1
 
-        retValue = SeedArray[pointerA] - SeedArray[pointerB]
+        retValue = seed_array[pointerA] - seed_array[pointerB]
         if retValue == MAX_INT:
             retValue -= 1
         if retValue < 0:
             retValue += MAX_INT
 
-        SeedArray[pointerA] = retValue
-        print(SeedArray)
+        seed_array[pointerA] = retValue
         yield retValue
 
 
-def reverseRan3(ran3: Iterator[int]):
+def reverseRan3(ran3: Iterator[int]) -> list[int]:
     values = [next(ran3) for _ in range(55)]
     return values
 
