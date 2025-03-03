@@ -39,4 +39,4 @@ jobs:
       - name: Type check
         if: always()
         continue-on-error: true
-        run: uv run pyright seedseeker
+        run: uv run basedpyright seedseeker
