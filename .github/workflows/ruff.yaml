@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  PY_COLORS: 1
+  UV_VERSION: 0.6.3
+
+jobs:
+  ci:
+    runs-on: "${{ matrix.platform }}-latest"
+    environment: "Test"
+    strategy:
+      fail-fast: false
+      # https://blog.jaraco.com/efficient-use-of-ci-resources/
+      matrix:
+        python: ["3.12", "3.13"]
+        platform: ["ubuntu", "macos", "windows"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: yezz123/setup-uv@v4
+        with:
+          uv-version: ${{ env.UV_VERSION }}
+      - name: Lint code
+        if: always()
+        run: |
+          uv run ruff check
+          uv run ruff format --check
+      - name: Type check
+        if: always()
+        continue-on-error: true
+        run: uv run pyright seedseeker
