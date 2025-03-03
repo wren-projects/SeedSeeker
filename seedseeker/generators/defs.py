@@ -1,5 +1,4 @@
-from typing import Generator
+from collections.abc import Iterator
 
-
-IntegerRNG = Generator[int, None, None]
-RealRNG = Generator[float, None, None]
+IntegerRNG = Iterator[int]
+RealRNG = Iterator[float]

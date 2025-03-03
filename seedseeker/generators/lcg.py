@@ -1,19 +1,22 @@
+import time
 from itertools import islice, pairwise
 from math import gcd
-import time
-from typing import Iterator
 
-from mod import Mod
-
-from primes import divisors
 from defs import IntegerRNG, RealRNG
+from mod import Mod
+from primes import divisors
 from utils import BufferingIterator, CountingIterator, drop
-
 
 LcgParameters = tuple[int, int, int]
 
 
 def lcg(m: int, a: int, c: int, x_0: int) -> IntegerRNG:
+    """
+    Create a Linear Congruential Generator (LCG).
+
+    Uses the formula:
+        X_{n+1} = (a * X_n + c) mod m
+    """
     assert m > 0
     assert 0 < a < m
     assert 0 <= c < m
@@ -26,10 +29,12 @@ def lcg(m: int, a: int, c: int, x_0: int) -> IntegerRNG:
 
 
 def lcg_real(m: int, a: int, c: int, x_0: int) -> RealRNG:
+    """Create a Linear Congruential Generator (LCG) with real values."""
     yield from (x_n / m for x_n in lcg(m, a, c, x_0))
 
 
-def reverse_lcg_parameters(lcg: Iterator[int]) -> LcgParameters:
+def reverse_lcg_parameters(lcg: IntegerRNG) -> LcgParameters:
+    """Reverse-engineer LCG parameters."""
     # TODO: add more bounds and precondition checks, to prevent both infinite
     # loops and false positive results
 

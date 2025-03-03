@@ -5,3 +5,4 @@ description = "Forensic Analysis of Random Number Generators"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["matplotlib", "mod", "PyQt6"]
+dev-dependencies = ["ruff"]

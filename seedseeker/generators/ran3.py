@@ -1,23 +1,28 @@
-from typing import Iterator
 import random
+from collections.abc import Iterator
+
 from defs import IntegerRNG
+
+MAX_INT = 2**32
+MSEED = 161803398
 
 
 def ran3(seed: int) -> IntegerRNG:
     """
-    based on the C# implementation
+    Create a ran3 PRNG.
+
+    Based on the C# implementation
 
     See:
         https://github.com/wren-projects/SeedSeeker/issues/4
     """
-    MAX_INT = 2**32
-    MSEED = 161803398
+    # protect users from poor seeds (e.g. 0)
+    real_seed = MSEED - abs(seed)
 
-    REAL_SEED = MSEED - abs(seed)
     seed_array = [0] * 56
 
-    seed_array[55] = REAL_SEED
-    mj = REAL_SEED
+    seed_array[55] = real_seed
+    mj = real_seed
 
     next_seed = 1
 
@@ -39,33 +44,38 @@ def ran3(seed: int) -> IntegerRNG:
             if seed_array[i] < 0:
                 seed_array[i] += MAX_INT
 
-    pointerA = 0
-    pointerB = 21
+    pointer_a = 0
+    pointer_b = 21
     while True:
-        pointerA += 1
-        if pointerA >= 56:
-            pointerA = 1
+        pointer_a += 1
+        if pointer_a >= 56:
+            pointer_a = 1
 
-        pointerB += 1
-        if pointerB >= 56:
-            pointerB = 1
+        pointer_b += 1
+        if pointer_b >= 56:
+            pointer_b = 1
 
-        retValue = seed_array[pointerA] - seed_array[pointerB]
-        if retValue == MAX_INT:
-            retValue -= 1
-        if retValue < 0:
-            retValue += MAX_INT
+        return_value = seed_array[pointer_a] - seed_array[pointer_b]
+        if return_value == MAX_INT:
+            return_value -= 1
+        if return_value < 0:
+            return_value += MAX_INT
 
-        seed_array[pointerA] = retValue
-        yield retValue
+        seed_array[pointer_a] = return_value
+        yield return_value
 
 
-def reverseRan3(ran3: Iterator[int]) -> list[int]:
-    values = [next(ran3) for _ in range(55)]
-    return values
+def ran3_real(seed: int) -> Iterator[float]:
+    """Create a ran3 PRNG with real values."""
+    yield from (x_n / MAX_INT for x_n in ran3(seed))
+
+
+def reverse_ran3(ran3: IntegerRNG) -> list[int]:
+    """Reverse a ran3 parameters."""
+    return [next(ran3) for _ in range(55)]
 
 
 if __name__ == "__main__":
     seed = random.randint(0, 2**32)
     PRNG = ran3(seed)
-    print(reverseRan3(PRNG))
+    print(reverse_ran3(PRNG))

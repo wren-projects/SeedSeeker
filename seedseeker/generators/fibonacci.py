@@ -1,14 +1,23 @@
+from __future__ import annotations
+
 from collections import deque
 from itertools import islice
 
+from defs import IntegerRNG, RealRNG
 from mod import Mod
 
-from defs import IntegerRNG, RealRNG
+FibonacciParameters = tuple[int, int, list[int], int, bool]
 
 
 def fibonacci(
-    r: int, s: int, seed: list[int], m: int, withCarry: bool = True
+    r: int, s: int, m: int, seed: list[int], with_carry: bool = True
 ) -> IntegerRNG:
+    """
+    Create an additive Lagged Fibonacci PRNG.
+
+    Uses the formula:
+        X_{n+1} = X_{n-r} + X_{n-s} mod m
+    """
     assert len(seed) == max(r, s), f"Seed must be of length max(r, s) ({max(r, s)})"
     queue = deque(Mod(n, m) for n in seed)
     carry = False
@@ -19,7 +28,7 @@ def fibonacci(
             value += 1
             carry = False
         # Check for "carry" (in mod m) and add carry
-        if withCarry and (value < queue[-r] or value < queue[-s]):
+        if with_carry and (value < queue[-r] or value < queue[-s]):
             carry = True
 
         yield int(value)
@@ -29,23 +38,18 @@ def fibonacci(
 
 
 def fibonacci_real(r: int, s: int, seed: list[int], m: int) -> RealRNG:
-    yield from (x_n / m for x_n in fibonacci(r, s, seed, m))
+    """Create an additive Lagged Fibonacci PRNG with real values."""
+    yield from (x_n / m for x_n in fibonacci(r, s, m, seed))
 
 
 def reverse_fibonacci(
-    generator: IntegerRNG, maxParam: int = 1000
-) -> None | tuple[int, int, int, bool]:
-    """
-    reverses configuration fibonacci PRNG that relies on addion of 2 elements
-
-    Configuration consists of M, R, S, C in Fibonacci PRNG given by the formula:
-    a(i) = (a(i-R) + a(i-S))%M
-
-    Sometimes, a carry is added to the formula. C is a boolean representing if the PRNG uses carry.
-    """
-    data = list(islice(generator, maxParam + 100))
+    generator: IntegerRNG, max_param: int = 1000
+) -> FibonacciParameters | None:
+    """Reverse enginner additive Lagged Fibonacci parameters."""
+    # TODO: Handle also the seed
+    data = list(islice(generator, max_param + 100))
     output = None
-    for r in range(maxParam):
+    for r in range(max_param):
         for s in range(1, r):
             assumed_mod = None
             with_carry = False
@@ -70,10 +74,13 @@ def reverse_fibonacci(
                 break
             else:
                 print(
-                    f"Found a good match M = {assumed_mod}, R = {r}, S = {s}, with{'' if with_carry else 'out'} carry"
+                    f"Found a good match M = {assumed_mod}, R = {r}, S = {s}, "
+                    f"with{'' if with_carry else 'out'} carry"
                 )
+                assert assumed_mod is not None
                 if output is None:
                     output = assumed_mod, r, s, with_carry
+
     return output
 
 
@@ -86,7 +93,7 @@ if __name__ == "__main__":
     carry = True
     seed = [random.randint(0, m) for _ in range(max(s, r))]
 
-    PRNG = fibonacci(r, s, seed, m, carry)
-    print(*islice(PRNG, 10000), sep=", ")
+    PRNG = fibonacci(r, s, m, seed, carry)
+    print(*islice(PRNG, 100), sep=", ")
     print(m, r, s, "with" if carry else "without", "carry")
-    print(reverse_fibonacci(PRNG, 5000), sep=", ")
+    print(reverse_fibonacci(PRNG, 5000))

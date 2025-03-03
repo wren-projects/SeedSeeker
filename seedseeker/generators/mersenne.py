@@ -1,6 +1,6 @@
 from itertools import islice
 
-from defs import IntegerRNG
+from defs import IntegerRNG, RealRNG
 
 N = 624
 M = 397
@@ -19,6 +19,8 @@ F = 1812433253
 
 
 def mersenne_twister(seed: int) -> IntegerRNG:
+    """Create a Mersenne Twister 19937 PRNG."""
+    # TODO: Allow for parameters to be specified as arguments
     state_array = [0] * N
     state_index = 0
 
@@ -34,15 +36,15 @@ def mersenne_twister(seed: int) -> IntegerRNG:
             j += N
 
         x = (state_array[k] & UMASK) | (state_array[j] & LMASK)
-        xA = x >> 1
+        x_a = x >> 1
         if x & 1:  # modulo 2 == 1
-            xA ^= A
+            x_a ^= A
 
         j = k - (N - M)
         if j < 0:
             j += N
 
-        x = state_array[j] ^ xA
+        x = state_array[j] ^ x_a
         state_array[k] = x
         k += 1
         if k >= N:
@@ -55,7 +57,8 @@ def mersenne_twister(seed: int) -> IntegerRNG:
         yield y >> L
 
 
-def mersenne_twister_real(seed):
+def mersenne_twister_real(seed: int) -> RealRNG:
+    """Create a Mersenne Twister 19937 PRNG with real values."""
     yield from (x_n / 2**32 for x_n in mersenne_twister(seed))
 
 
