@@ -38,7 +38,7 @@ class BufferingIterator[T](Iterator[T]):
         Max size is the maximum number of values to buffer or 0 for no limit.
         """
         self.iterator = iterator
-        self.buffer = deque(maxlen=max_size)
+        self.buffer: deque[T] = deque(maxlen=max_size)
 
     def __iter__(self):
         """Return the iterator."""
