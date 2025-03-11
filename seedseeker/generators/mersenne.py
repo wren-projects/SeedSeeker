@@ -54,7 +54,8 @@ def mersenne_twister(seed: int) -> IntegerRNG:
         y = x ^ (x >> U)
         y ^= (y << S) & B
         y ^= (y << T) & C
-        yield y >> L
+        y ^= y >> L
+        yield y
 
 
 def mersenne_twister_real(seed: int) -> RealRNG:
