@@ -1,9 +1,8 @@
 import random
 
-from defs import IntegerRNG
+from defs import IntegerRNG, RealRNG
 
 XoshiroParameters = tuple[int, int, int, int]
-
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
@@ -13,10 +12,9 @@ def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
     return ((x << k) | (x >> (bit_size - k))) % 2**bit_size
 
-
 def xoshiro(seed: XoshiroParameters) -> IntegerRNG:
     """Create a Xoshiro256** PRNG."""
-    assert not all(x == 0 for x in seed), "Seed can't be all zero"
+    assert any(x != 0 for x in seed), "Seed can't be all zero"
 
     s0, s1, s2, s3 = seed
 
@@ -31,6 +29,9 @@ def xoshiro(seed: XoshiroParameters) -> IntegerRNG:
         s3 = rot(s3, 45)
         yield r
 
+def xoshiro_real(seed: XoshiroParameters) -> RealRNG:
+    """Create a Xoshiro256** PRNG with real values."""
+    yield from (x_n / 2**64 for x_n in xoshiro(seed))
 
 def reverse_xoshiro_parameters(gen: IntegerRNG) -> XoshiroParameters:
     """Reverse-engineer Xoshiro256** parameters."""
@@ -60,7 +61,6 @@ def reverse_xoshiro_parameters(gen: IntegerRNG) -> XoshiroParameters:
     s0 = t0 ^ s1 ^ s3
     s2 = t1 ^ s0 ^ s1
     return s0, s1, s2, s3
-
 
 if __name__ == "__main__":
 
