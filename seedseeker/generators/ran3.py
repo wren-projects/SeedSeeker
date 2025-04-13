@@ -1,7 +1,7 @@
 import random
 from collections.abc import Iterator
 
-from defs import IntegerRNG
+from seedseeker.defs import IntegerRNG
 
 MAX_INT = 2**32
 MSEED = 161803398
