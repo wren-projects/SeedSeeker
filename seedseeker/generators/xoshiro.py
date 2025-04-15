@@ -1,8 +1,9 @@
 import random
 
-from defs import IntegerRNG, RealRNG
+from seedseeker.defs import IntegerRNG, RealRNG
 
 XoshiroParameters = tuple[int, int, int, int]
+
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
@@ -11,6 +12,7 @@ def rot(x: int, k: int, bit_size: int = 64) -> int:
     Assumes modulo 2**bit_size.
     """
     return ((x << k) | (x >> (bit_size - k))) % 2**bit_size
+
 
 def xoshiro(seed: XoshiroParameters) -> IntegerRNG:
     """Create a Xoshiro256** PRNG."""
@@ -29,9 +31,11 @@ def xoshiro(seed: XoshiroParameters) -> IntegerRNG:
         s3 = rot(s3, 45)
         yield r
 
+
 def xoshiro_real(seed: XoshiroParameters) -> RealRNG:
     """Create a Xoshiro256** PRNG with real values."""
     yield from (x_n / 2**64 for x_n in xoshiro(seed))
+
 
 def reverse_xoshiro_parameters(gen: IntegerRNG) -> XoshiroParameters:
     """Reverse-engineer Xoshiro256** parameters."""
@@ -61,6 +65,7 @@ def reverse_xoshiro_parameters(gen: IntegerRNG) -> XoshiroParameters:
     s0 = t0 ^ s1 ^ s3
     s2 = t1 ^ s0 ^ s1
     return s0, s1, s2, s3
+
 
 if __name__ == "__main__":
 

@@ -1,6 +1,6 @@
 from itertools import islice
 
-from defs import IntegerRNG, RealRNG
+from seedseeker.defs import IntegerRNG, RealRNG
 
 N = 624
 M = 397

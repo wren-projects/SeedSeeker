@@ -2,10 +2,11 @@ import time
 from itertools import islice, pairwise
 from math import gcd
 
-from defs import IntegerRNG, RealRNG
 from mod import Mod
-from primes import divisors
-from utils import BufferingIterator, CountingIterator, drop
+
+from seedseeker.defs import IntegerRNG, RealRNG
+from seedseeker.utils.iterator import BufferingIterator, CountingIterator, drop
+from seedseeker.utils.primes import divisors
 
 LcgParameters = tuple[int, int, int]
 

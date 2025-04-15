@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections import deque
 from itertools import islice
 
-from defs import IntegerRNG, RealRNG
 from mod import Mod
+
+from seedseeker.defs import IntegerRNG, RealRNG
 
 FibonacciParameters = tuple[int, int, list[int], int, bool]
 
