@@ -1,9 +1,11 @@
+import itertools
 import random
 from collections.abc import Iterator
 
 from seedseeker.defs import IntegerRNG
 
-MAX_INT = 2**32
+MAX_INT = 2**31 - 1
+MIN_INT = -(2**31)
 MSEED = 161803398
 
 
@@ -18,31 +20,39 @@ def ran3(seed: int) -> IntegerRNG:
     """
     # protect users from poor seeds (e.g. 0)
     real_seed = MSEED - abs(seed)
-
     seed_array = [0] * 56
 
     seed_array[55] = real_seed
     mj = real_seed
 
-    next_seed = 1
+    mk = 1
 
     for i in range(1, 55):
         ii = (21 * i) % 55
 
-        seed_array[ii] = next_seed
+        seed_array[ii] = mk
 
-        next_seed = mj - next_seed
+        mk = mj - mk
 
-        if next_seed < 0:
-            next_seed += MAX_INT
+        if mk < 0:
+            mk += MAX_INT
 
         mj = seed_array[ii]
 
-    for _ in range(1, 5):
-        for i in range(1, 56):
-            seed_array[i] -= seed_array[1 + (i + 30) % 55]
-            if seed_array[i] < 0:
-                seed_array[i] += MAX_INT
+    assert all(MIN_INT < a < MAX_INT for a in seed_array)
+
+    # iterate over the seed array 4 times
+    for _, i in itertools.product(range(4), range(1, 56)):
+        seed_array[i] -= seed_array[1 + (i + 30) % 55]
+
+        # simulate Int32's native overflow
+        if seed_array[i] < MIN_INT:
+            seed_array[i] += 2**32
+        if seed_array[i] > MAX_INT:
+            seed_array[i] -= 2**32
+
+        if seed_array[i] < 0:
+            seed_array[i] += MAX_INT
 
     pointer_a = 0
     pointer_b = 21
@@ -56,12 +66,14 @@ def ran3(seed: int) -> IntegerRNG:
             pointer_b = 1
 
         return_value = seed_array[pointer_a] - seed_array[pointer_b]
+
         if return_value == MAX_INT:
             return_value -= 1
         if return_value < 0:
             return_value += MAX_INT
 
         seed_array[pointer_a] = return_value
+
         yield return_value
 
 
