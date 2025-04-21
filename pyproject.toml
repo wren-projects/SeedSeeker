@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Forensic Analysis of Random Number Generators"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["matplotlib", "mod", "PyQt6"]
+dependencies = ["mod"]
 
 [tool.uv]
 required-version = ">=0.6.0"

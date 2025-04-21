@@ -24,6 +24,8 @@ def mersenne_twister(seed: int) -> IntegerRNG:
     state_array = [0] * N
     state_index = 0
 
+    assert 0 <= seed < 2**32, "Seed must be between 0 and 2^32"
+
     state_array[0] = seed
     for i in range(1, N):
         seed = F * (seed ^ (seed >> (W - 2))) % 2**32 + i
