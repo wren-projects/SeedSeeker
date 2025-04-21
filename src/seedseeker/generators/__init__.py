@@ -10,7 +10,7 @@ from seedseeker.generators.mersenne import (
     mersenne_twister_real,
 )
 from seedseeker.generators.ran3 import ran3, ran3_real
-from seedseeker.generators.xoshiro import xoshiro, xoshiro_real
+from seedseeker.generators.xoshiro import XoshiroParameters, xoshiro, xoshiro_real
 
 __all__ = [
     "FibonacciParameters",

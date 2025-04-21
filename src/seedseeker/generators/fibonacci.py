@@ -9,6 +9,7 @@ from seedseeker.defs import IntegerRNG, RealRNG
 
 FibonacciParameters = tuple[int, int, int, bool]
 
+
 def fibonacci(
     r: int, s: int, m: int, seed: list[int], with_carry: bool = True
 ) -> IntegerRNG:
