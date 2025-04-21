@@ -9,6 +9,7 @@ from seedseeker.defs import IntegerRNG, RealRNG
 
 FibonacciParameters = tuple[int, int, int, bool]
 
+
 def fibonacci(
     r: int, s: int, m: int, seed: list[int], with_carry: bool = True
 ) -> IntegerRNG:
@@ -19,17 +20,17 @@ def fibonacci(
         X_{n+1} = X_{n-r} + X_{n-s} mod m
     """
     assert len(seed) == max(r, s), f"Seed must be of length max(r, s) ({max(r, s)})"
+
+    # allow for r, s to be given in any order
+    r, s = min(r, s), max(r, s)
+
     queue = deque(Mod(n, m) for n in seed)
     carry = False
     while True:
-        value = queue[-r] + queue[-s]
+        value = queue[-r] + queue[-s] + carry
 
-        if carry:
-            value += 1
-            carry = False
-        # Check for "carry" (in mod m) and add carry
-        if with_carry and (value < queue[-r] or value < queue[-s]):
-            carry = True
+        # Check for "overflow" (in mod m) and set carry accordingly
+        carry = with_carry and (value < queue[-r] or value < queue[-s])
 
         yield int(value)
 
