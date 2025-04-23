@@ -92,6 +92,7 @@ def predict(mersenne_seed: int) -> float:
             future_predictions_match += 1
     return (future_predictions_match / 1000) * 100
 
+
 if __name__ == "__main__":
     twister = 19650218
     print(predict(twister))
