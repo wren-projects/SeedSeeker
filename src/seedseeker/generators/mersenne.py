@@ -70,7 +70,6 @@ def mersenne_twister_real(seed: int) -> RealRNG:
 def predict(mersenne_seed: int) -> float:
     """Predict numbers."""
     unknown = list(islice(mersenne_twister(mersenne_seed), 1000))
-    # print("Trying to predict MT19937 generator...")
 
     cracker = RandCrack()
 
@@ -82,9 +81,9 @@ def predict(mersenne_seed: int) -> float:
 
     # Future values
     future_predictions_match = 0
-    mt_future = islice(mersenne_twister(mersenne_seed), 624, 1624)  # Dalších 1000 čísel
+    mt_future = islice(mersenne_twister(mersenne_seed), 0, 624)
     for i, predicted in zip(
-        mt_future, (cracker.predict_getrandbits(32) for _ in range(1000)), strict=False
+        mt_future, (cracker.predict_getrandbits(32) for _ in range(624)), strict=False
     ):
         if i == predicted:
             future_predictions_match += 1
