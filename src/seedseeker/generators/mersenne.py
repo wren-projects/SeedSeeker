@@ -1,6 +1,9 @@
 from itertools import islice
 
-from seedseeker.defs import IntegerRNG, RealRNG
+from collections.abc import Iterator
+
+IntegerRNG = Iterator[int]
+RealRNG = Iterator[float]
 
 N = 624
 M = 397
@@ -14,8 +17,8 @@ S = 7
 T = 15
 L = 18
 B = 0x9D2C5680
-C = 0xEFC60000
-F = 1812433253
+C = 0xEFC60000 
+F = 1812433253 # Can be changed
 
 
 def mersenne_twister(seed: int) -> IntegerRNG:
@@ -57,6 +60,7 @@ def mersenne_twister(seed: int) -> IntegerRNG:
         y ^= (y << S) & B
         y ^= (y << T) & C
         y ^= y >> L
+        
         yield y
 
 
@@ -65,5 +69,56 @@ def mersenne_twister_real(seed: int) -> RealRNG:
     yield from (x_n / 2**32 for x_n in mersenne_twister(seed))
 
 
+"""
+Class:
+    RandCrack
+
+Function:     
+    One of the most known predictors for MT19937.
+    The generator find internal state and then he can predict the numbers.
+    The cracker needs 624 numbers to find internal state.
+
+Return:
+    # TODO IntegerRNG / class Mersenne_twister
+    # Now it can return predicted numbers
+
+"""
+
+"""
+Dependencies: pip install randcrack
+"""
+from randcrack import RandCrack
+
+
+"""
+Function for predicted numbers.
+TODO instead of [list(islice(mersenne_twister(mersenne_seed), 1000)] there will be numbers from input
+
+"""
+def predict(mersenne_seed):
+    unknown = list(islice(mersenne_twister(mersenne_seed), 1000))
+    #print("Trying to predict MT19937 generator...")
+
+    cracker = RandCrack()
+
+    if (len(unknown) < 624):
+        assert("File have less than 624 numbers!")
+
+    # Submit the first 624 numbers from your Mersenne Twister
+    for i in range(624):
+        cracker.submit(unknown[i])
+
+    # Future values
+    future_predictions_match = 0
+    mt_future = islice(mersenne_twister(mersenne_seed), 624, 1624) # Dalších 1000 čísel
+    for i, predicted in zip(mt_future, (cracker.predict_getrandbits(32) for _ in range(1000))):
+        if i == predicted:
+            future_predictions_match += 1
+    percentage_future = (future_predictions_match / 1000) * 100
+
+    return percentage_future
+
 if __name__ == "__main__":
-    print(*islice(mersenne_twister(19650218), 100), sep=", ")
+    twister = 19650218
+    print(predict(twister))
+
