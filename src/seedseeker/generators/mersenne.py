@@ -1,6 +1,8 @@
 from itertools import islice
 from typing import override
 
+from randcrack import RandCrack
+
 from seedseeker.defs import IntegerRNG
 
 MersenneTwisterState = tuple[list[int], int]
@@ -83,5 +85,30 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         return rng
 
 
+def predict(mersenne_seed: int) -> float:
+    """Predict numbers."""
+    unknown = list(islice(MersenneTwister(mersenne_seed), 1000))
+
+    cracker = RandCrack()
+
+    assert len(unknown) > 624, "File have less than 624 numbers!"
+
+    # Submit the first 624 numbers from your Mersenne Twister
+    for i in range(624):
+        cracker.submit(unknown[i])
+
+    # Future values
+    future_predictions_match = 0
+    mt_future = islice(MersenneTwister(mersenne_seed), 0, 624)
+    for i, predicted in zip(
+        mt_future, (cracker.predict_getrandbits(32) for _ in range(624)), strict=False
+    ):
+        if i == predicted:
+            future_predictions_match += 1
+    return (future_predictions_match / 1000) * 100
+
+
 if __name__ == "__main__":
-    print(*islice(MersenneTwister(19650218), 100), sep=", ")
+    twister = 19650218
+    print(*islice(MersenneTwister(twister), 100), sep=", ")
+    print(predict(twister))
