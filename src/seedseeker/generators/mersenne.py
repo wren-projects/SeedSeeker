@@ -1,10 +1,8 @@
-from collections.abc import Iterator
 from itertools import islice
 
 from randcrack import RandCrack
 
-IntegerRNG = Iterator[int]
-RealRNG = Iterator[float]
+from seedseeker.defs import IntegerRNG, RealRNG
 
 N = 624
 M = 397
