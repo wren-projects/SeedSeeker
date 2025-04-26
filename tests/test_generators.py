@@ -5,10 +5,10 @@ import pytest
 from seedseeker.generators import (
     Lcg,
     MersenneTwister,
+    Ran3,
     Xoshiro,
     XoshiroState,
     fibonacci,
-    ran3,
 )
 
 
@@ -145,7 +145,7 @@ from seedseeker.generators import (
 )
 def test_ran3(seed: int, expected: list[int]) -> None:
     """Test ran3 generator."""
-    assert list(islice(ran3(seed), len(expected))) == expected
+    assert list(islice(Ran3(seed), len(expected))) == expected
 
 
 @pytest.mark.parametrize(

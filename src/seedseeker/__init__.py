@@ -3,10 +3,10 @@ from seedseeker.generators import (
     LcgState,
     MersenneTwister,
     MersenneTwisterState,
+    Ran3,
+    Ran3State,
     Xoshiro,
     XoshiroState,
-    ran3,
-    ran3_real,
 )
 
 __all__ = [
@@ -14,8 +14,8 @@ __all__ = [
     "LcgState",
     "MersenneTwister",
     "MersenneTwisterState",
+    "Ran3",
+    "Ran3State",
     "Xoshiro",
     "XoshiroState",
-    "ran3",
-    "ran3_real",
 ]
