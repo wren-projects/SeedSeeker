@@ -75,7 +75,7 @@ def reverse_fibonacci(
     generator: Iterator[int], max_param: int = 1000
 ) -> FibonacciState | None:
     """Reverse enginner additive Lagged Fibonacci parameters."""
-    # TODO: Handle also the seed
+    # TODO: Handle also the seed and the current value of the carry
     data = list(islice(generator, max_param + 100))
     output = None
     for r in range(max_param):
