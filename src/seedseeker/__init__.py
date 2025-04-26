@@ -1,6 +1,4 @@
 from seedseeker.generators import (
-    doom,
-    doom_real,
     lcg,
     lcg_real,
     mersenne_twister,
@@ -12,8 +10,6 @@ from seedseeker.generators import (
 )
 
 __all__ = [
-    "doom",
-    "doom_real",
     "lcg",
     "lcg_real",
     "mersenne_twister",

@@ -1,9 +1,8 @@
 from itertools import islice
 
-from seedseeker.generators import doom, fibonacci, lcg, mersenne_twister, ran3, xoshiro
+from seedseeker.generators import fibonacci, lcg, mersenne_twister, ran3, xoshiro
 
 GENERATORS = {
-    "doom": doom,
     "fibonacci": fibonacci,
     "lcg": lcg,
     "ran3": ran3,
