@@ -1,7 +1,6 @@
 from seedseeker.generators.fibonacci import (
-    FibonacciParameters,
-    fibonacci,
-    fibonacci_real,
+    FibonacciRng,
+    FibonacciState,
 )
 from seedseeker.generators.lcg import Lcg, LcgState
 from seedseeker.generators.mersenne import MersenneTwister, MersenneTwisterState
@@ -9,7 +8,8 @@ from seedseeker.generators.ran3 import Ran3, Ran3State
 from seedseeker.generators.xoshiro import Xoshiro, XoshiroState
 
 __all__ = [
-    "FibonacciParameters",
+    "FibonacciRng",
+    "FibonacciState",
     "Lcg",
     "LcgState",
     "MersenneTwister",
@@ -19,6 +19,4 @@ __all__ = [
     "Xoshiro",
     "Xoshiro",
     "XoshiroState",
-    "fibonacci",
-    "fibonacci_real",
 ]

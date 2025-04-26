@@ -17,7 +17,8 @@ class IntegerRNG[StateT](Protocol):
         """Return the inner state."""
         raise NotImplementedError
 
-    def from_state(self, state: StateT) -> Self:
+    @staticmethod
+    def from_state(state: StateT) -> Self:
         """Set the inner state."""
         raise NotImplementedError
 

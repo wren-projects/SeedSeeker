@@ -1,4 +1,6 @@
 from seedseeker.generators import (
+    FibonacciRng,
+    FibonacciState,
     Lcg,
     LcgState,
     MersenneTwister,
@@ -10,6 +12,8 @@ from seedseeker.generators import (
 )
 
 __all__ = [
+    "FibonacciRng",
+    "FibonacciState",
     "Lcg",
     "LcgState",
     "MersenneTwister",
