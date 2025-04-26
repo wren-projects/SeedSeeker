@@ -5,10 +5,10 @@ import pytest
 from seedseeker.generators import (
     Lcg,
     MersenneTwister,
-    XoshiroParameters,
+    Xoshiro,
+    XoshiroState,
     fibonacci,
     ran3,
-    xoshiro,
 )
 
 
@@ -352,9 +352,9 @@ def test_mersenne(seed: int, expected: list[int]) -> None:
         ),
     ],
 )
-def test_xoshiro(seed: XoshiroParameters, expected: list[int]) -> None:
+def test_xoshiro(seed: XoshiroState, expected: list[int]) -> None:
     """Test the Xoshiro generator."""
-    assert list(islice(xoshiro(seed), len(expected))) == expected
+    assert list(islice(Xoshiro(seed), len(expected))) == expected
 
 
 @pytest.mark.parametrize(

@@ -1,44 +1,59 @@
 import random
+from collections.abc import Iterator
 
-from seedseeker.defs import IntegerRNG, RealRNG
+from seedseeker.defs import IntegerRNG
 
-XoshiroParameters = tuple[int, int, int, int]
+XoshiroState = tuple[int, int, int, int]
+
+class Xoshiro(IntegerRNG[XoshiroState]):
+    """Xoshiro256** PRNG."""
+
+    MODULO = 2**64
+
+    s0: int
+    s1: int
+    s2: int
+    s3: int
+
+
+    def __init__(self, seed: XoshiroState) -> None:
+        """Create a new Xoshiro256** PRNG from given seed."""
+        assert any(x != 0 for x in seed), "Seed can't be all zero"
+        self.s0, self.s1, self.s2, self.s3 = seed
+
+    def __next__(self) -> int:
+        """Return the next value."""
+        r = (rot((self.s1 * 5) % self.MODULO, 7) * 9) % self.MODULO
+        t = (self.s1 << 17) % self.MODULO
+        self.s2 ^= self.s0
+        self.s3 ^= self.s1
+        self.s1 ^= self.s2
+        self.s0 ^= self.s3
+        self.s2 ^= t
+        self.s3 = rot(self.s3, 45)
+        return r
+
+    def state(self) -> XoshiroState:
+        """Return the inner state."""
+        return self.s0, self.s1, self.s2, self.s3
+
+    def from_state(self, state: XoshiroState) -> "Xoshiro":
+        """Create a new Xoshiro256** PRNG from given state."""
+        return Xoshiro(state)
+
 
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
-    Rotate x by k bits.
+    Rotate integer x left by k bits.
 
-    Assumes modulo 2**bit_size.
+    Wraps around like bit_size wide integers.
     """
     return ((x << k) | (x >> (bit_size - k))) % 2**bit_size
 
 
-def xoshiro(seed: XoshiroParameters) -> IntegerRNG:
-    """Create a Xoshiro256** PRNG."""
-    assert any(x != 0 for x in seed), "Seed can't be all zero"
-
-    s0, s1, s2, s3 = seed
-
-    while True:
-        r = (rot((s1 * 5) % 2**64, 7) * 9) % 2**64
-        t = (s1 << 17) % 2**64
-        s2 ^= s0
-        s3 ^= s1
-        s1 ^= s2
-        s0 ^= s3
-        s2 ^= t
-        s3 = rot(s3, 45)
-        yield r
-
-
-def xoshiro_real(seed: XoshiroParameters) -> RealRNG:
-    """Create a Xoshiro256** PRNG with real values."""
-    yield from (x_n / 2**64 for x_n in xoshiro(seed))
-
-
-def reverse_xoshiro_parameters(gen: IntegerRNG) -> XoshiroParameters:
-    """Reverse-engineer Xoshiro256** parameters."""
+def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
+    """Attempt to reverse-engineer Xoshiro256** parameters."""
     inv9 = pow(9, -1, 2**64)
     inv5 = pow(5, -1, 2**64)
 
@@ -74,9 +89,8 @@ if __name__ == "__main__":
         return random.randint(0, 2**64 - 1)
 
     parameters = (rand_u64(), rand_u64(), rand_u64(), rand_u64())
-    generator = xoshiro(parameters)
-
-    reverse_parameters = reverse_xoshiro_parameters(generator)
+    generator = Xoshiro(parameters)
+    reverse_parameters = reverse_xoshiro(generator)
 
     print(parameters)
     print(reverse_parameters)

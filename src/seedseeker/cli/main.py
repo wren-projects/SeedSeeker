@@ -1,13 +1,13 @@
 from itertools import islice
 
-from seedseeker.generators import Lcg, MersenneTwister, fibonacci, ran3, xoshiro
+from seedseeker.generators import Lcg, MersenneTwister, Xoshiro, fibonacci, ran3
 
 GENERATORS = {
     "fibonacci": fibonacci,
     "lcg": Lcg,
     "ran3": ran3,
     "mersenne": MersenneTwister,
-    "xoshiro": xoshiro,
+    "xoshiro": Xoshiro,
 }
 
 

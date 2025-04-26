@@ -6,7 +6,7 @@ from seedseeker.generators.fibonacci import (
 from seedseeker.generators.lcg import Lcg, LcgState
 from seedseeker.generators.mersenne import MersenneTwister, MersenneTwisterState
 from seedseeker.generators.ran3 import ran3, ran3_real
-from seedseeker.generators.xoshiro import XoshiroParameters, xoshiro, xoshiro_real
+from seedseeker.generators.xoshiro import Xoshiro, XoshiroState
 
 __all__ = [
     "FibonacciParameters",
@@ -14,11 +14,11 @@ __all__ = [
     "LcgState",
     "MersenneTwister",
     "MersenneTwisterState",
-    "XoshiroParameters",
+    "Xoshiro",
+    "Xoshiro",
+    "XoshiroState",
     "fibonacci",
     "fibonacci_real",
     "ran3",
     "ran3_real",
-    "xoshiro",
-    "xoshiro_real",
 ]
