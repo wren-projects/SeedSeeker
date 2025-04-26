@@ -438,4 +438,6 @@ def test_fibonacci(
     r: int, s: int, m: int, seed: list[int], with_carry: bool, expected: list[int]
 ) -> None:
     """Test the additive Lagged Fibonacci generator."""
-    assert list(islice(FibonacciRng(r, s, m, seed, with_carry), len(expected))) == expected
+    assert (
+        list(islice(FibonacciRng(r, s, m, seed, with_carry), len(expected))) == expected
+    )

@@ -5,6 +5,7 @@ from seedseeker.defs import IntegerRNG
 
 XoshiroState = tuple[int, int, int, int]
 
+
 class Xoshiro(IntegerRNG[XoshiroState]):
     """Xoshiro256** PRNG."""
 
@@ -14,7 +15,6 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     s1: int
     s2: int
     s3: int
-
 
     def __init__(self, seed: XoshiroState) -> None:
         """Create a new Xoshiro256** PRNG from given seed."""
@@ -40,7 +40,6 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     def from_state(self, state: XoshiroState) -> "Xoshiro":
         """Create a new Xoshiro256** PRNG from given state."""
         return Xoshiro(state)
-
 
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:

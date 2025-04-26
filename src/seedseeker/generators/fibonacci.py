@@ -10,6 +10,7 @@ from seedseeker.defs import IntegerRNG
 
 FibonacciState = tuple[int, int, int, list[int], bool, bool]
 
+
 class FibonacciRng(IntegerRNG[FibonacciState]):
     """
     Additive Lagged Fibonacci PRNG.
@@ -25,7 +26,9 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
     with_carry: bool
     carry: bool
 
-    def __init__(self, r: int, s: int, m: int, seed: list[int], with_carry: bool = True) -> None:
+    def __init__(
+        self, r: int, s: int, m: int, seed: list[int], with_carry: bool = True
+    ) -> None:
         """Create an additive Lagged Fibonacci PRNG."""
         assert len(seed) == max(r, s), f"Seed must be of length max(r, s) ({max(r, s)})"
 
@@ -46,7 +49,7 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         value = self.queue[-r] + self.queue[-s] + self.carry
 
         # Check for "overflow" (in mod m) and set carry accordingly
-        overflow = (value < self.queue[-r] or value < self.queue[-s])
+        overflow = value < self.queue[-r] or value < self.queue[-s]
         self.carry = self.with_carry and overflow
 
         self.queue.popleft()
@@ -66,6 +69,7 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         rng = FibonacciRng(r, s, m, seed, with_carry)
         rng.carry = carry
         return rng
+
 
 def reverse_fibonacci(
     generator: Iterator[int], max_param: int = 1000

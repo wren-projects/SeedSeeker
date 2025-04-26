@@ -6,9 +6,10 @@ from seedseeker.defs import IntegerRNG
 
 Ran3State = tuple[list[int], int, int]
 
+
 class Ran3(IntegerRNG[Ran3State]):
     """
-    ran3 PRNG
+    ran3 PRNG.
 
     Based on the C# implementation
 
@@ -95,6 +96,7 @@ class Ran3(IntegerRNG[Ran3State]):
         rng = Ran3(0)
         rng.seed_array, rng.pointer_a, rng.pointer_b = state
         return rng
+
 
 def reverse_ran3(ran3: Iterator[int]) -> Ran3State:
     """Reverse a ran3 parameters."""
