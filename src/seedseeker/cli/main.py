@@ -4,7 +4,7 @@ from seedseeker.generators import fibonacci, lcg, mersenne_twister, ran3, xoshir
 
 GENERATORS = {
     "fibonacci": fibonacci,
-    "lcg": lcg,
+    "lcg": Lcg,
     "ran3": ran3,
     "mersenne": mersenne_twister,
     "xoshiro": xoshiro,

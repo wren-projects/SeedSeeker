@@ -3,9 +3,9 @@ from itertools import islice
 import pytest
 
 from seedseeker.generators import (
+    Lcg,
     XoshiroParameters,
     fibonacci,
-    lcg,
     mersenne_twister,
     ran3,
     xoshiro,
@@ -203,7 +203,7 @@ def test_ran3(seed: int, expected: list[int]) -> None:
 )
 def test_lcg(m: int, a: int, c: int, x_0: int, expected: list[int]) -> None:
     """Test Linear Congruential Generator (LCG)."""
-    assert list(islice(lcg(m, a, c, x_0), len(expected))) == expected
+    assert list(islice(Lcg(m, a, c, x_0), len(expected))) == expected
 
 
 @pytest.mark.parametrize(

@@ -1,8 +1,8 @@
 from seedseeker.generators import (
-    lcg,
-    lcg_real,
     mersenne_twister,
     mersenne_twister_real,
+    Lcg,
+    LcgState,
     ran3,
     ran3_real,
     xoshiro,
@@ -10,10 +10,10 @@ from seedseeker.generators import (
 )
 
 __all__ = [
-    "lcg",
-    "lcg_real",
     "mersenne_twister",
     "mersenne_twister_real",
+    "Lcg",
+    "LcgState",
     "ran3",
     "ran3_real",
     "xoshiro",
