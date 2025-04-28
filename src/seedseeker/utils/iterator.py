@@ -2,7 +2,7 @@ from collections import deque
 from collections.abc import Iterator
 
 
-class CountingIterator[T]:
+class CountingIterator[T](Iterator[T]):
     """An iterator that counts the number of values yielded."""
 
     def __init__(self, iterator: Iterator[T]):

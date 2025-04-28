@@ -3,12 +3,12 @@ from itertools import islice
 import pytest
 
 from seedseeker.generators import (
-    XoshiroParameters,
-    fibonacci,
-    lcg,
-    mersenne_twister,
-    ran3,
-    xoshiro,
+    FibonacciRng,
+    Lcg,
+    MersenneTwister,
+    Ran3,
+    Xoshiro,
+    XoshiroState,
 )
 
 
@@ -145,7 +145,7 @@ from seedseeker.generators import (
 )
 def test_ran3(seed: int, expected: list[int]) -> None:
     """Test ran3 generator."""
-    assert list(islice(ran3(seed), len(expected))) == expected
+    assert list(islice(Ran3(seed), len(expected))) == expected
 
 
 @pytest.mark.parametrize(
@@ -203,7 +203,7 @@ def test_ran3(seed: int, expected: list[int]) -> None:
 )
 def test_lcg(m: int, a: int, c: int, x_0: int, expected: list[int]) -> None:
     """Test Linear Congruential Generator (LCG)."""
-    assert list(islice(lcg(m, a, c, x_0), len(expected))) == expected
+    assert list(islice(Lcg(m, a, c, x_0), len(expected))) == expected
 
 
 @pytest.mark.parametrize(
@@ -276,7 +276,7 @@ def test_lcg(m: int, a: int, c: int, x_0: int, expected: list[int]) -> None:
 )
 def test_mersenne(seed: int, expected: list[int]) -> None:
     """Test the Mersenne Twister generator."""
-    assert list(islice(mersenne_twister(seed), len(expected))) == expected
+    assert list(islice(MersenneTwister(seed), len(expected))) == expected
 
 
 @pytest.mark.parametrize(
@@ -352,9 +352,9 @@ def test_mersenne(seed: int, expected: list[int]) -> None:
         ),
     ],
 )
-def test_xoshiro(seed: XoshiroParameters, expected: list[int]) -> None:
+def test_xoshiro(seed: XoshiroState, expected: list[int]) -> None:
     """Test the Xoshiro generator."""
-    assert list(islice(xoshiro(seed), len(expected))) == expected
+    assert list(islice(Xoshiro(seed), len(expected))) == expected
 
 
 @pytest.mark.parametrize(
@@ -438,4 +438,6 @@ def test_fibonacci(
     r: int, s: int, m: int, seed: list[int], with_carry: bool, expected: list[int]
 ) -> None:
     """Test the additive Lagged Fibonacci generator."""
-    assert list(islice(fibonacci(r, s, m, seed, with_carry), len(expected))) == expected
+    assert (
+        list(islice(FibonacciRng(r, s, m, seed, with_carry), len(expected))) == expected
+    )
