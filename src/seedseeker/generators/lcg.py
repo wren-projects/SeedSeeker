@@ -40,7 +40,8 @@ class Lcg(IntegerRNG[LcgState]):
         """Return the inner state."""
         return self.a, self.c, self.x_n
 
-    def from_state(self, state: LcgState) -> "Lcg":
+    @staticmethod
+    def from_state(state: LcgState) -> "Lcg":
         """Create a new LCG from given state."""
         rng = Lcg(0, 0, 0, 0)
         rng.a, rng.c, rng.x_n = state

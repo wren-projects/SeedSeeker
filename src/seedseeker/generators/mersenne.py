@@ -75,7 +75,8 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         """Return the inner state."""
         return self.state_array, self.state_index
 
-    def from_state(self, state: MersenneTwisterState) -> "MersenneTwister":
+    @staticmethod
+    def from_state(state: MersenneTwisterState) -> "MersenneTwister":
         """Set the inner state."""
         rng = MersenneTwister(0)
         rng.state_array, rng.state_index = state

@@ -37,7 +37,8 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         """Return the inner state."""
         return self.s0, self.s1, self.s2, self.s3
 
-    def from_state(self, state: XoshiroState) -> "Xoshiro":
+    @staticmethod
+    def from_state(state: XoshiroState) -> "Xoshiro":
         """Create a new Xoshiro256** PRNG from given state."""
         return Xoshiro(state)
 
