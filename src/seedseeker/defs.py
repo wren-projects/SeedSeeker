@@ -21,6 +21,3 @@ class IntegerRNG[StateT](Protocol):
     def from_state(state: StateT) -> Self:
         """Set the inner state."""
         raise NotImplementedError
-
-
-RealRNG = Iterator[float]

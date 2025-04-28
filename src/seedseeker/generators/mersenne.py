@@ -38,10 +38,6 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
             seed = self.F * (seed ^ (seed >> (self.W - 2))) % self.MODULO + i
             self.state_array[i] = seed
 
-    def __iter__(self):
-        """Return the iterator."""
-        return self
-
     def __next__(self):
         """Return the next value."""
         k = self.state_index
