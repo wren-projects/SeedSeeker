@@ -4,90 +4,106 @@ from collections.abc import Iterator
 
 from seedseeker.defs import IntegerRNG
 
-MAX_INT = 2**31 - 1
-MIN_INT = -(2**31)
-MSEED = 161803398
+Ran3State = tuple[list[int], int, int]
 
 
-def ran3(seed: int) -> IntegerRNG:
+class Ran3(IntegerRNG[Ran3State]):
     """
-    Create a ran3 PRNG.
+    ran3 PRNG.
 
     Based on the C# implementation
 
     See:
         https://github.com/wren-projects/SeedSeeker/issues/4
     """
-    # protect users from poor seeds (e.g. 0)
-    real_seed = MSEED - abs(seed)
-    seed_array = [0] * 56
 
-    seed_array[55] = real_seed
-    mj = real_seed
+    MAX_INT = 2**31 - 1
+    MIN_INT = -(2**31)
+    MSEED = 161803398
 
-    mk = 1
+    seed_array: list[int]
+    pointer_a: int
+    pointer_b: int
 
-    for i in range(1, 55):
-        ii = (21 * i) % 55
+    def __init__(self, seed: int) -> None:
+        """Create a new Ran3 PRNG from the given seed."""
+        # protect users from poor seeds (e.g. 0)
+        real_seed = self.MSEED - abs(seed)
+        self.seed_array = [0] * 55 + [real_seed]
 
-        seed_array[ii] = mk
+        self.pointer_a = 0
+        self.pointer_b = 21
 
-        mk = mj - mk
+        mj = real_seed
 
-        if mk < 0:
-            mk += MAX_INT
+        mk = 1
 
-        mj = seed_array[ii]
+        for i in range(1, 55):
+            ii = (21 * i) % 55
 
-    assert all(MIN_INT < a < MAX_INT for a in seed_array)
+            self.seed_array[ii] = mk
 
-    # iterate over the seed array 4 times
-    for _, i in itertools.product(range(4), range(1, 56)):
-        seed_array[i] -= seed_array[1 + (i + 30) % 55]
+            mk = mj - mk
 
-        # simulate Int32's native overflow
-        if seed_array[i] < MIN_INT:
-            seed_array[i] += 2**32
-        if seed_array[i] > MAX_INT:
-            seed_array[i] -= 2**32
+            if mk < 0:
+                mk += self.MAX_INT
 
-        if seed_array[i] < 0:
-            seed_array[i] += MAX_INT
+            mj = self.seed_array[ii]
 
-    pointer_a = 0
-    pointer_b = 21
-    while True:
-        pointer_a += 1
-        if pointer_a >= 56:
-            pointer_a = 1
+        assert all(self.MIN_INT < a < self.MAX_INT for a in self.seed_array)
 
-        pointer_b += 1
-        if pointer_b >= 56:
-            pointer_b = 1
+        # iterate over the seed array 4 times
+        for _, i in itertools.product(range(4), range(1, 56)):
+            self.seed_array[i] -= self.seed_array[1 + (i + 30) % 55]
 
-        return_value = seed_array[pointer_a] - seed_array[pointer_b]
+            # simulate Int32's native overflow
+            if self.seed_array[i] < self.MIN_INT:
+                self.seed_array[i] += 2**32
+            if self.seed_array[i] > self.MAX_INT:
+                self.seed_array[i] -= 2**32
 
-        if return_value == MAX_INT:
-            return_value -= 1
-        if return_value < 0:
-            return_value += MAX_INT
+            if self.seed_array[i] < 0:
+                self.seed_array[i] += self.MAX_INT
 
-        seed_array[pointer_a] = return_value
+    def __next__(self) -> int:
+        """Return the next value."""
+        self.pointer_a += 1
+        if self.pointer_a >= 56:
+            self.pointer_a = 1
 
-        yield return_value
+        self.pointer_b += 1
+        if self.pointer_b >= 56:
+            self.pointer_b = 1
+
+        value = self.seed_array[self.pointer_a] - self.seed_array[self.pointer_b]
+
+        if value == self.MAX_INT:
+            value -= 1
+        if value < 0:
+            value += self.MAX_INT
+
+        self.seed_array[self.pointer_a] = value
+
+        return value
+
+    def state(self) -> Ran3State:
+        """Return the inner state."""
+        return self.seed_array, self.pointer_a, self.pointer_b
+
+    @staticmethod
+    def from_state(state: Ran3State) -> "Ran3":
+        """Create a new Ran3 PRNG from the given state."""
+        rng = Ran3(0)
+        rng.seed_array, rng.pointer_a, rng.pointer_b = state
+        return rng
 
 
-def ran3_real(seed: int) -> Iterator[float]:
-    """Create a ran3 PRNG with real values."""
-    yield from (x_n / MAX_INT for x_n in ran3(seed))
-
-
-def reverse_ran3(ran3: IntegerRNG) -> list[int]:
+def reverse_ran3(ran3: Iterator[int]) -> Ran3State:
     """Reverse a ran3 parameters."""
-    return [next(ran3) for _ in range(55)]
+    return [next(ran3) for _ in range(55)], 0, 21
 
 
 if __name__ == "__main__":
     seed = random.randint(0, 2**32)
-    PRNG = ran3(seed)
+    PRNG = Ran3(seed)
     print(reverse_ran3(PRNG))
