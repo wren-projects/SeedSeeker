@@ -1,19 +1,22 @@
 from collections import deque
 from collections.abc import Iterator
+from typing import override
 
 
-class CountingIterator[T]:
+class CountingIterator[T](Iterator[T]):
     """An iterator that counts the number of values yielded."""
 
     def __init__(self, iterator: Iterator[T]):
         """Initialize the iterator."""
-        self.iterator = iterator
-        self.count = 0
+        self.iterator: Iterator[T] = iterator
+        self.count: int = 0
 
+    @override
     def __iter__(self):
         """Return the iterator."""
         return self
 
+    @override
     def __next__(self):
         """Return the next value and increment the count."""
         self.count += 1
@@ -37,19 +40,21 @@ class BufferingIterator[T](Iterator[T]):
 
         Max size is the maximum number of values to buffer or 0 for no limit.
         """
-        self.iterator = iterator
+        self.iterator: Iterator[T] = iterator
         self.buffer: deque[T] = deque(maxlen=max_size)
 
+    @override
     def __iter__(self):
         """Return the iterator."""
         return self
 
+    @override
     def __next__(self):
         """Return the next value."""
         value = next(self.iterator)
 
         if self.buffer.maxlen and len(self.buffer) == self.buffer.maxlen:
-            self.buffer.popleft()
+            _ = self.buffer.popleft()
 
         self.buffer.append(value)
 
@@ -65,7 +70,7 @@ def drop[T](iterator: Iterator[T], n: int) -> Iterator[T]:
     """
     try:
         for _ in range(n):
-            next(iterator)
+            _ = next(iterator)
     except StopIteration:
         pass
 
