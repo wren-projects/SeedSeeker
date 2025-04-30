@@ -21,3 +21,8 @@ class IntegerRNG[StateT](Protocol):
     def from_state(state: StateT) -> Self:
         """Set the inner state."""
         raise NotImplementedError
+
+    @staticmethod
+    def is_state_equal(state1: StateT, state2: StateT) -> bool:
+        """Check if two states are equal."""
+        raise NotImplementedError

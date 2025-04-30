@@ -1,4 +1,3 @@
-import random
 from collections.abc import Iterator
 
 from seedseeker.defs import IntegerRNG
@@ -42,6 +41,11 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         """Create a new Xoshiro256** PRNG from given state."""
         return Xoshiro(state)
 
+    @staticmethod
+    def is_state_equal(state1: XoshiroState, state2: XoshiroState) -> bool:
+        """Check if two Xoshiro256** states are equal."""
+        return state1 == state2
+
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
@@ -79,19 +83,12 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
     s3 = rot(t3, 64 - 45) ^ s1
     s0 = t0 ^ s1 ^ s3
     s2 = t1 ^ s0 ^ s1
-    return s0, s1, s2, s3
 
+    og_state = [s0, s1, s2, s3]
+    gen = Xoshiro.from_state(og_state)
+    next(gen)
+    next(gen)
+    next(gen)
+    next(gen)
 
-if __name__ == "__main__":
-
-    def rand_u64() -> int:
-        """Generate a random 64-bit unsigned integer."""
-        return random.randint(0, 2**64 - 1)
-
-    parameters = (rand_u64(), rand_u64(), rand_u64(), rand_u64())
-    generator = Xoshiro(parameters)
-    reverse_parameters = reverse_xoshiro(generator)
-
-    print(parameters)
-    print(reverse_parameters)
-    assert parameters == reverse_parameters
+    return gen.state()

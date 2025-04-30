@@ -37,6 +37,7 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
         self.r = r
         self.s = s
+        self.m = m
         self.with_carry = with_carry
 
         self.queue = deque(Mod(n, m) for n in seed)
@@ -69,6 +70,17 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         rng = FibonacciRng(r, s, m, seed, with_carry)
         rng.carry = carry
         return rng
+
+    @staticmethod
+    def is_state_equal(state1: FibonacciState, state2: FibonacciState) -> bool:
+        """Check if two FibonacciRng states are equal."""
+        return (
+            state1[2] == state2[2]
+            and {state1[0], state1[1]} == {state2[0], state2[1]}
+            and state1[4] == state2[4]
+            and (state1[4] == 0 or state1[5] == state2[5])
+            and state1[3] == state2[3]
+        )
 
 
 def reverse_fibonacci(
@@ -108,21 +120,6 @@ def reverse_fibonacci(
                 )
                 assert assumed_mod is not None
                 if output is None:
-                    output = r, s, assumed_mod, [], with_carry, False
-
+                    carry = data[-1 - r] + data[-1 - s] >= assumed_mod
+                    output = r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
     return output
-
-
-if __name__ == "__main__":
-    import random
-
-    r = 3217
-    s = 576
-    m = 2**32
-    carry = True
-    seed = [random.randint(0, m) for _ in range(max(s, r))]
-
-    PRNG = FibonacciRng(r, s, m, seed, carry)
-    print(*islice(PRNG, 100), sep=", ")
-    print(m, r, s, "with" if carry else "without", "carry")
-    print(reverse_fibonacci(PRNG, 5000))

@@ -1,5 +1,4 @@
 import itertools
-import random
 from collections.abc import Iterator
 
 from seedseeker.defs import IntegerRNG
@@ -28,6 +27,11 @@ class Ran3(IntegerRNG[Ran3State]):
     def __init__(self, seed: int) -> None:
         """Create a new Ran3 PRNG from the given seed."""
         # protect users from poor seeds (e.g. 0)
+        while seed > self.MAX_INT:
+            seed -= 2**32
+        while seed < self.MIN_INT:
+            seed += 2**32
+
         real_seed = self.MSEED - abs(seed)
         self.seed_array = [0] * 55 + [real_seed]
 
@@ -50,8 +54,6 @@ class Ran3(IntegerRNG[Ran3State]):
 
             mj = self.seed_array[ii]
 
-        assert all(self.MIN_INT < a < self.MAX_INT for a in self.seed_array)
-
         # iterate over the seed array 4 times
         for _, i in itertools.product(range(4), range(1, 56)):
             self.seed_array[i] -= self.seed_array[1 + (i + 30) % 55]
@@ -64,6 +66,10 @@ class Ran3(IntegerRNG[Ran3State]):
 
             if self.seed_array[i] < 0:
                 self.seed_array[i] += self.MAX_INT
+
+        assert all(self.MIN_INT <= a <= self.MAX_INT for a in self.seed_array), (
+            "Seed array overflowed"
+        )
 
     def __next__(self) -> int:
         """Return the next value."""
@@ -97,13 +103,29 @@ class Ran3(IntegerRNG[Ran3State]):
         rng.seed_array, rng.pointer_a, rng.pointer_b = state
         return rng
 
+    @staticmethod
+    def is_state_equal(state1: Ran3State, state2: Ran3State) -> bool:
+        """Check if two Ran3 PRNG states are equal."""
+        # This is more complex than a simple
+        # equality check because the internal state is a circular buffer.
+        if ((state1[2] - state2[2]) - (state1[1] - state2[1])) % 55 != 0:
+            return False
+
+        index1 = state1[1]
+        index2 = state2[1]
+
+        for _ in range(55):
+            index1 += 1
+            index2 += 1
+            if index1 >= 56:
+                index1 = 1
+            if index2 >= 56:
+                index2 = 1
+            if state1[0][index1] != state2[0][index2]:
+                return False
+        return True
+
 
 def reverse_ran3(ran3: Iterator[int]) -> Ran3State:
     """Reverse a ran3 parameters."""
-    return [next(ran3) for _ in range(55)], 0, 21
-
-
-if __name__ == "__main__":
-    seed = random.randint(0, 2**32)
-    PRNG = Ran3(seed)
-    print(reverse_ran3(PRNG))
+    return [0] + [next(ran3) for _ in range(55)], 55, 21
