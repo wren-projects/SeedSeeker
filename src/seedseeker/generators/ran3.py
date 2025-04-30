@@ -111,8 +111,6 @@ class Ran3(IntegerRNG[Ran3State]):
         """
         if ((state1[2] - state2[2]) - (state1[1] - state2[1])) % 55 != 0:
             return False
-        print(state1)
-        print(state2)
 
         index1 = state1[1]
         index2 = state2[1]
