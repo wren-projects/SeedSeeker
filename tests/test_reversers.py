@@ -6,9 +6,11 @@ from seedseeker.generators import (
     FibonacciRng,
     Lcg,
     Ran3,
+    Xoshiro,
     reverse_fibonacci,
     reverse_lcg,
     reverse_ran3,
+    reverse_xoshiro,
 )
 
 
@@ -127,3 +129,27 @@ def test_lcg_reverser(
     found = reverse_lcg(prng)
     expected = prng.state()
     assert Lcg.is_state_equal(found, expected)
+
+
+@pytest.mark.parametrize(
+    ("seed", "values_to_consume"),
+    [
+        (
+            [
+                random.randint(0, 2**64),
+                random.randint(0, 2**64),
+                random.randint(0, 2**64),
+                random.randint(0, 2**64),
+            ],
+            random.randint(0, 100),
+        ),
+        ([random.randint(0, 2**64), 0, 0, 0], 50),
+    ],
+)
+def test_xoshiro_reverser(seed: int, values_to_consume: int) -> None:
+    """Test the reverser for a given Xoshiro generator params."""
+    prng = Xoshiro(seed)
+    [next(prng) for _ in range(values_to_consume)]
+    found = reverse_xoshiro(prng)
+    expected = prng.state()
+    assert Xoshiro.is_state_equal(found, expected)
