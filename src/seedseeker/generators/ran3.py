@@ -101,6 +101,33 @@ class Ran3(IntegerRNG[Ran3State]):
         rng.seed_array, rng.pointer_a, rng.pointer_b = state
         return rng
 
+    @staticmethod
+    def is_state_equal(state1: Ran3State, state2: Ran3State) -> bool:
+        """
+        Check if two Ran3 PRNG states are equal.
+
+        This is more complex than a simple
+        equality check because the internal state is a circular buffer.
+        """
+        if ((state1[2] - state2[2]) - (state1[1] - state2[1])) % 55 != 0:
+            return False
+        print(state1)
+        print(state2)
+
+        index1 = state1[1]
+        index2 = state2[1]
+
+        for _ in range(55):
+            index1 += 1
+            index2 += 1
+            if index1 >= 56:
+                index1 = 1
+            if index2 >= 56:
+                index2 = 1
+            if state1[0][index1] != state2[0][index2]:
+                return False
+        return True
+
 
 def reverse_ran3(ran3: Iterator[int]) -> Ran3State:
     """Reverse a ran3 parameters."""

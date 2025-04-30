@@ -47,6 +47,11 @@ class Lcg(IntegerRNG[LcgState]):
         rng.a, rng.c, rng.x_n = state
         return rng
 
+    @staticmethod
+    def is_state_equal(state1: LcgState, state2: LcgState) -> bool:
+        """Check if two LCG states are equal."""
+        return state1 == state2
+
 
 def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
     """Attempt to reverse-engineer LCG parameters."""
@@ -72,7 +77,7 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
 
         next(differences)
 
-        if len(guesses) < 3:
+        if len(guesses) < 30:
             continue
 
         upper_modulus = gcd(*guesses)
