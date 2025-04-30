@@ -1,4 +1,3 @@
-import time
 from collections.abc import Iterator
 from itertools import islice, pairwise
 from math import gcd
@@ -6,7 +5,7 @@ from math import gcd
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
-from seedseeker.utils.iterator import BufferingIterator, CountingIterator, drop
+from seedseeker.utils.iterator import BufferingIterator, drop
 from seedseeker.utils.primes import divisors
 
 LcgState = tuple[int, int, Mod]
@@ -105,39 +104,3 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
                 continue
 
             return multiple, increment, Mod(a3, modulus)
-
-
-if __name__ == "__main__":
-    # ranqd1 parameters
-    m = 2**32
-    a = 1664525
-    c = 1013904223
-
-    seed = time.time_ns() % m
-
-    counted = CountingIterator(Lcg(m, a, c, seed))
-
-    print(reverse_lcg(counted))
-    print(f"Done with {len(counted)} values")
-
-    # graph the planar nature of the generator
-    #
-    # import matplotlib
-    # import matplotlib.pyplot as plt
-    #
-    # matplotlib.use("QtAgg")
-    #
-    # num_points = 2**16
-    # lcg_gen = lcg(m, a, c, seed)
-    # values = [next(lcg_gen) for _ in range(num_points)]
-    #
-    # x_values = values[:-1]
-    # y_values = values[1:]
-    #
-    # plot = plt.subplots()
-    #
-    # plt.scatter(x_values, y_values, s=1)
-    # plt.title("Scatter plot of LCG generated numbers")
-    # plt.xlabel("X values")
-    # plt.ylabel("Y values")
-    # plt.show()

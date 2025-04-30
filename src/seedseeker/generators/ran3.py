@@ -67,7 +67,9 @@ class Ran3(IntegerRNG[Ran3State]):
             if self.seed_array[i] < 0:
                 self.seed_array[i] += self.MAX_INT
 
-        assert all(self.MIN_INT <= a <= self.MAX_INT for a in self.seed_array)
+        assert all(self.MIN_INT <= a <= self.MAX_INT for a in self.seed_array), (
+            "Seed array overflowed"
+        )
 
     def __next__(self) -> int:
         """Return the next value."""
