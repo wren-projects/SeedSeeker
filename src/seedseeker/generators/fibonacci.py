@@ -74,17 +74,13 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
     @staticmethod
     def is_state_equal(state1: FibonacciState, state2: FibonacciState) -> bool:
         """Check if two FibonacciRng states are equal."""
-        if not (
-            state1[2] == state2[2] and {state1[0], state1[1]} == {state2[0], state2[1]}
-        ):
-            return False
-        if state1[4] != state2[4]:
-            return False
-        if state1[4] and (state1[5] != state2[5]):
-            return False
-
-        return state1[3] == state2[3]
-
+        return (
+            state1[2] == state2[2]
+            and {state1[0], state1[1]} == {state2[0], state2[1]}
+            and state1[4] == state2[4]
+            and (state1[4] == 0 or state1[5] == state2[5])
+            and state1[3] == state2[3]
+        )
 
 def reverse_fibonacci(
     generator: Iterator[int], max_param: int = 1000
