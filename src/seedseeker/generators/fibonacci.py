@@ -82,6 +82,7 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
             and state1[3] == state2[3]
         )
 
+
 def reverse_fibonacci(
     generator: Iterator[int], max_param: int = 1000
 ) -> FibonacciState | None:
