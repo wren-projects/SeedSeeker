@@ -1,0 +1,51 @@
+\documentclass[12pt, a4paper]{report}
+
+% Nastavení českého jazyka
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+% \usepackage[IL2]{fontenc}
+
+% \usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{xltabular}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{hhline}
+\usepackage{menukeys}
+\usepackage{tikz}
+\usetikzlibrary{shadows,positioning,shapes}
+
+\titleformat{\chapter}[block]
+{\normalfont\Huge\bfseries}{\thechapter\ }{0pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-2cm}{10pt}
+
+\usepackage[indent=0pt]{parskip}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\begin{center}
+		\Large{\textbf{Západočeská Univerzita v Plzni\break Fakulta Aplikovaných Věd}}
+
+		\vspace{\fill}
+		\normalsize{Předmět KIV/ZSW-E\break
+		Semestrální práce na téma:\break}
+		\Large{\textbf{SeedSeeker}}
+
+		\vspace{\fill}
+		\normalsize{Autoři: Pavel Altmann, Jakub Kupčik,\hspace{\fill}\break
+			Matěj Bartička, David Wimmer, Patrik Holub
+		\hspace{\fill}Datum: 1 Května 2025}
+\end{center}
+\newpage
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+\end{document}
