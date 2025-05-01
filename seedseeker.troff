@@ -1,4 +1,9 @@
 .TH SeedSeeker
 .SH NAME
+seedseeker \- PRNG tool reversal
 .SH SYNOPSIS
+python \-m seedseeker <generator>
+.SH DESCRIPTION
+A tool with the ability to infer internal parameters of PRNGs from a sufficently sized data sample.
 .SH SEE ALSO
+dieharder(1)
