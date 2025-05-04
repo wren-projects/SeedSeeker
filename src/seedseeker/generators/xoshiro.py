@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from typing import override
 
 from seedseeker.defs import IntegerRNG
 
@@ -20,6 +21,7 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         assert any(x != 0 for x in seed), "Seed can't be all zero"
         self.s0, self.s1, self.s2, self.s3 = seed
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
         r = (rot((self.s1 * 5) % self.MODULO, 7) * 9) % self.MODULO
@@ -32,15 +34,18 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         self.s3 = rot(self.s3, 45)
         return r
 
+    @override
     def state(self) -> XoshiroState:
         """Return the inner state."""
         return self.s0, self.s1, self.s2, self.s3
 
+    @override
     @staticmethod
     def from_state(state: XoshiroState) -> "Xoshiro":
         """Create a new Xoshiro256** PRNG from given state."""
         return Xoshiro(state)
 
+    @override
     @staticmethod
     def is_state_equal(state1: XoshiroState, state2: XoshiroState) -> bool:
         """Check if two Xoshiro256** states are equal."""
@@ -84,11 +89,11 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
     s0 = t0 ^ s1 ^ s3
     s2 = t1 ^ s0 ^ s1
 
-    og_state = [s0, s1, s2, s3]
+    og_state = (s0, s1, s2, s3)
     gen = Xoshiro.from_state(og_state)
-    next(gen)
-    next(gen)
-    next(gen)
-    next(gen)
+    _ = next(gen)
+    _ = next(gen)
+    _ = next(gen)
+    _ = next(gen)
 
     return gen.state()

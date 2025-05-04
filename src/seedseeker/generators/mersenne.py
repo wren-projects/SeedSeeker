@@ -1,4 +1,5 @@
 from itertools import islice
+from typing import override
 
 from seedseeker.defs import IntegerRNG
 
@@ -8,21 +9,21 @@ MersenneTwisterState = tuple[list[int], int]
 class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     """Mersenne Twister 19937 PRNG."""
 
-    N = 624
-    M = 397
-    W = 32
-    R = 31
-    UMASK = 0xFFFFFFFF << R
-    LMASK = 0xFFFFFFFF >> (W - R)
-    A = 0x9908B0DF
-    U = 11
-    S = 7
-    T = 15
-    L = 18
-    B = 0x9D2C5680
-    C = 0xEFC60000
-    F = 1812433253
-    MODULO = 2**32
+    N: int = 624
+    M: int = 397
+    W: int = 32
+    R: int = 31
+    UMASK: int = 0xFFFFFFFF << R
+    LMASK: int = 0xFFFFFFFF >> (W - R)
+    A: int = 0x9908B0DF
+    U: int = 11
+    S: int = 7
+    T: int = 15
+    L: int = 18
+    B: int = 0x9D2C5680
+    C: int = 0xEFC60000
+    F: int = 1812433253
+    MODULO: int = 2**32
 
     state_array: list[int]
     state_index: int
@@ -38,6 +39,7 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
             seed = self.F * (seed ^ (seed >> (self.W - 2))) % self.MODULO + i
             self.state_array[i] = seed
 
+    @override
     def __next__(self):
         """Return the next value."""
         k = self.state_index
@@ -67,10 +69,12 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         y ^= y >> self.L
         return y
 
+    @override
     def state(self) -> MersenneTwisterState:
         """Return the inner state."""
         return self.state_array, self.state_index
 
+    @override
     @staticmethod
     def from_state(state: MersenneTwisterState) -> "MersenneTwister":
         """Set the inner state."""

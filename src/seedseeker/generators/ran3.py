@@ -1,5 +1,6 @@
 import itertools
 from collections.abc import Iterator
+from typing import override
 
 from seedseeker.defs import IntegerRNG
 
@@ -16,9 +17,9 @@ class Ran3(IntegerRNG[Ran3State]):
         https://github.com/wren-projects/SeedSeeker/issues/4
     """
 
-    MAX_INT = 2**31 - 1
-    MIN_INT = -(2**31)
-    MSEED = 161803398
+    MAX_INT: int = 2**31 - 1
+    MIN_INT: int = -(2**31)
+    MSEED: int = 161803398
 
     seed_array: list[int]
     pointer_a: int
@@ -71,6 +72,7 @@ class Ran3(IntegerRNG[Ran3State]):
             "Seed array overflowed"
         )
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
         self.pointer_a += 1
@@ -92,10 +94,12 @@ class Ran3(IntegerRNG[Ran3State]):
 
         return value
 
+    @override
     def state(self) -> Ran3State:
         """Return the inner state."""
         return self.seed_array, self.pointer_a, self.pointer_b
 
+    @override
     @staticmethod
     def from_state(state: Ran3State) -> "Ran3":
         """Create a new Ran3 PRNG from the given state."""
@@ -103,6 +107,7 @@ class Ran3(IntegerRNG[Ran3State]):
         rng.seed_array, rng.pointer_a, rng.pointer_b = state
         return rng
 
+    @override
     @staticmethod
     def is_state_equal(state1: Ran3State, state2: Ran3State) -> bool:
         """Check if two Ran3 PRNG states are equal."""
