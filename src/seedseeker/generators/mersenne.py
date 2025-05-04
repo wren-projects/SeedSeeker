@@ -144,6 +144,3 @@ if __name__ == "__main__":
 
     print(f"Predicted: {pred.__next__()}")
     print(f"Original: {orig.__next__()}")
-
-    print(f"Predicted: {pred.__next__()}")
-    print(f"Original: {orig.__next__()}")
