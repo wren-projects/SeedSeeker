@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Iterator
 from itertools import islice
+from typing import override
 
 from mod import Mod
 
@@ -43,11 +44,12 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         self.queue = deque(Mod(n, m) for n in seed)
         self.carry = False
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
         r, s = self.r, self.s
 
-        value = self.queue[-r] + self.queue[-s] + self.carry
+        value = self.queue[-r] + self.queue[-s] + int(self.carry)
 
         # Check for "overflow" (in mod m) and set carry accordingly
         overflow = value < self.queue[-r] or value < self.queue[-s]
@@ -58,11 +60,13 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
         return int(value)
 
+    @override
     def state(self) -> FibonacciState:
         """Return the inner state."""
         queue = [int(n) for n in self.queue]
         return self.r, self.s, self.m, queue, self.with_carry, self.carry
 
+    @override
     @staticmethod
     def from_state(state: FibonacciState) -> FibonacciRng:
         """Create a new FibonacciRng from given state."""
@@ -71,6 +75,7 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         rng.carry = carry
         return rng
 
+    @override
     @staticmethod
     def is_state_equal(state1: FibonacciState, state2: FibonacciState) -> bool:
         """Check if two FibonacciRng states are equal."""

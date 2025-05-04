@@ -1,6 +1,7 @@
 from collections.abc import Iterator
 from itertools import islice, pairwise
 from math import gcd
+from typing import override
 
 from mod import Mod
 
@@ -18,6 +19,11 @@ class Lcg(IntegerRNG[LcgState]):
     Uses the formula: Xₙ₊₁ = (a ⋅ Xₙ + c) mod m
     """
 
+    m: int
+    a: int
+    c: int
+    x_n: Mod
+
     def __init__(self, m: int, a: int, c: int, x_0: int) -> None:
         """Create a Linear Congruential Generator (LCG)."""
         assert m > 0
@@ -30,15 +36,18 @@ class Lcg(IntegerRNG[LcgState]):
         self.c = c
         self.x_n = Mod(x_0, m)
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
         self.x_n = self.a * self.x_n + self.c
         return int(self.x_n)
 
+    @override
     def state(self) -> LcgState:
         """Return the inner state."""
         return self.a, self.c, self.x_n
 
+    @override
     @staticmethod
     def from_state(state: LcgState) -> "Lcg":
         """Create a new LCG from given state."""
@@ -46,6 +55,7 @@ class Lcg(IntegerRNG[LcgState]):
         rng.a, rng.c, rng.x_n = state
         return rng
 
+    @override
     @staticmethod
     def is_state_equal(state1: LcgState, state2: LcgState) -> bool:
         """Check if two LCG states are equal."""
