@@ -2,7 +2,11 @@
 .SH NAME
 seedseeker \- PRNG tool reversal
 .SH SYNOPSIS
-python \-m seedseeker <generator>
+python \-m seedseeker 
+takes user input separated by new lines until empty line is passed, then runs reversal
+
+python \-m seedseeker [-g, --generator] <generator_name> <generator_state> <sequence_length>
+generates <sequence_length> values using <generator_name> with initial <generator_state>
 .SH DESCRIPTION
 A tool with the ability to infer internal parameters of PRNGs from a sufficently sized data sample.
 .SH SEE ALSO
