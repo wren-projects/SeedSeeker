@@ -29,7 +29,7 @@ def main() -> None:
     import sys
 
     parser = ArgumentParser(
-        description="Tool designed to reverse-engineer the state of PRNG from a sequence of generated values",
+        description="Tool designed to infer the state of PRNG from a sequence of generated values",
         epilog="Please refer to the manpage for user guide, or the provided documentation for implementation details")
 
     gen = parser.add_mutually_exclusive_group()
@@ -37,7 +37,7 @@ def main() -> None:
     gen.add_argument("-g", "--generator",
                         nargs=3,
                         metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
-                        help="Generates <sequence_length> numbers by generator <generator_name> with state <generator_state>. Generator state format is specified in documentation")
+                        help="Generates <sequence_length> numbers by generator <generator_name> with initial state <generator_state>. Generator state format is specified in documentation")
 
     gen.add_argument("-fi", "--file-in",
                         metavar=("<filepath>"),
