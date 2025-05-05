@@ -51,6 +51,17 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         """Check if two Xoshiro256** states are equal."""
         return state1 == state2
 
+    @staticmethod
+    def from_string(string: str) -> "Xoshiro":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
+
+        if len(params) < 4:
+            raise SyntaxError
+
+        s0, s1, s2, s3 = int(params[0]), int(params[1]), int(params[2]), int(params[3])
+        seed = XoshiroState([s0, s1, s2, s3])
+        return Xoshiro(seed)
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """

@@ -26,3 +26,8 @@ class IntegerRNG[StateT](Protocol):
     def is_state_equal(state1: StateT, state2: StateT) -> bool:
         """Check if two states are equal."""
         raise NotImplementedError
+
+    @staticmethod
+    def from_string(string: str) -> Self:
+        """Create generator with states from parameter string."""
+        raise NotImplementedError

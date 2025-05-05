@@ -1,18 +1,8 @@
 import argparse
+from argparse import ArgumentParser
 from itertools import islice, tee
-
-from seedseeker.generators import (
-    FibonacciRng,
-    FileStream,
-    Lcg,
-    MersenneTwister,
-    Ran3,
-    Xoshiro,
-    reverse_fibonacci,
-    reverse_lcg,
-    reverse_ran3,
-    reverse_xoshiro,
-)
+from seedseeker.generators import Lcg, MersenneTwister, Ran3, Xoshiro, FibonacciRng, FileStream
+from seedseeker.generators import reverse_fibonacci, reverse_lcg, reverse_ran3, reverse_xoshiro
 
 VERSION = "1.0"
 
@@ -24,7 +14,12 @@ GENERATORS = {
     "xoshiro": Xoshiro,
 }
 
-REVERSERS = [reverse_fibonacci, reverse_lcg, reverse_ran3, reverse_xoshiro]
+REVERSERS = {
+    "fibonacci": reverse_fibonacci,
+    "lcg": reverse_lcg,
+    "ran3": reverse_ran3,
+    "xoshiro": reverse_xoshiro
+}
 
 DEFAULT_SEQUENCE_LENGTH = 100
 
@@ -33,43 +28,34 @@ def main() -> None:
     """CLI entry point."""
     import sys
 
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         description="Tool designed to reverse-engineer the state of PRNG from a sequence of generated values",
-        epilog="Please refer to the manpage for user guide, or the provided documentation for implementation details",
-    )
+        epilog="Please refer to the manpage for user guide, or the provided documentation for implementation details")
+
     gen = parser.add_mutually_exclusive_group()
 
-    gen.add_argument(
-        "-g",
-        "--generator",
-        nargs=3,
-        metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
-        help="Generates <sequence_length> numbers by generator <generator_name> with state <generator_state>. Generator state is a series of parameters separated by commas",
-    )
+    gen.add_argument("-g", "--generator",
+                        nargs=3,
+                        metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
+                        help="Generates <sequence_length> numbers by generator <generator_name> with state <generator_state>. Generator state format is specified in documentation")
 
-    gen.add_argument(
-        "-fi", "--file-in", metavar=("<filepath>"), help="Reads numbers from file"
-    )
+    gen.add_argument("-fi", "--file-in",
+                        metavar=("<filepath>"),
+                        help="Reads numbers from file")
 
-    parser.add_argument(
-        "-fo", "--file-out", metavar=("<filepath>"), help="Writes output to file"
-    )
+    parser.add_argument("-fo", "--file-out",
+                        metavar=("<filepath>"),
+                        help="Writes output to file")
 
-    parser.add_argument(
-        "-len",
-        "--length",
-        metavar=("<total>"),
-        help="Maximal length of the reversed sequence, overriden when -g is used. 0 = unlimited",
-        default=0,
-    )
+    parser.add_argument("-len", "--length",
+                        metavar=("<total>"),
+                        help="Maximal length of the reversed sequence, overriden when -g is used. 0 = unlimited",
+                        default=0)
 
-    parser.add_argument(
-        "-v",
-        "--version",
-        help="Program version",
-        action="version",
-        version=f"SeedSeeker {VERSION}",
-    )
+    parser.add_argument("-v", "--version",
+                        help="Program version",
+                        action="version",
+                        version=f"SeedSeeker {VERSION}")
 
     # TODO: Determine if this will be a thing
     # parser.add_argument("-gl", "--generator-list",
@@ -81,6 +67,7 @@ def main() -> None:
 
     inp = FileStream()
     out = sys.stdout
+    err = sys.stderr
 
     if args.generator is not None:
         args.length = int(args.generator[2])
@@ -91,14 +78,21 @@ def main() -> None:
             sys.stderr.write(f"Unknown generator: {g}")
             sys.exit(1)
 
-        pars = tuple([int(par.strip()) for par in args.generator[1].split(",")])
-        inp = GENERATORS[g](*pars)
+        pars = args.generator[1]
+
+        try:
+            inp = GENERATORS[g].from_string(pars)
+
+        except SyntaxError:
+            err.write(f"Error in syntax of generator parameters {pars}\n")
 
     elif args.file_in is not None:
         inp = FileStream(args.file_in)
 
+
     elif args.generator is None and args.file_in is None and args.length == 0:
         args.length = DEFAULT_SEQUENCE_LENGTH
+
 
     if args.file_out is not None:
         out = open(args.file_out)
@@ -109,8 +103,10 @@ def main() -> None:
 
     iterators = tee(inp, len(REVERSERS))
 
-    states = [reverser(iterator) for iterator, reverser in zip(iterators, REVERSERS)]
+    results = [(name, reverser(islice(iterator, count)))
+    for iterator, (name, reverser) in zip(iterators, REVERSERS.items(), strict=True)]
 
-    [print(state) for state in states]
+    [print(f"{name}: {state}") for name, state in results]
 
     out.write("Finished")
+    out.close()

@@ -61,6 +61,17 @@ class Lcg(IntegerRNG[LcgState]):
         """Check if two LCG states are equal."""
         return state1 == state2
 
+    @staticmethod
+    def from_string(string: str) -> "Lcg":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
+
+        if len(params) < 4:
+            raise SyntaxError
+
+        m, a, c, x_0 = int(params[0]), int(params[1]), int(params[2]), int(params[3])
+        return Lcg(m, a, c, x_0)
+
 
 def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
     """Attempt to reverse-engineer LCG parameters."""

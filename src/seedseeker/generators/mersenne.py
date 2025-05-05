@@ -104,6 +104,18 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         raise NotImplementedError
 
 
+    @staticmethod
+    def from_string(string: str) -> "MersenneTwister":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
+
+        if len(params) < 1:
+            raise SyntaxError
+
+        seed = int(params[0])
+        return MersenneTwister(seed)
+
+
 def reverse_mersenne(mersenne: Iterator[int]) -> MersenneTwister | None:
     """Find state using RandCrack algorithm from an iterator."""
     predictor = RandCrack()

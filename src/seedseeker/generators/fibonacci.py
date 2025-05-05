@@ -8,6 +8,7 @@ from typing import override
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
+from sys import stderr
 
 FibonacciState = tuple[int, int, int, list[int], bool, bool]
 
@@ -87,6 +88,26 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
             and state1[3] == state2[3]
         )
 
+    @staticmethod
+    def from_string(string: str) -> FibonacciRng:
+        """Create generator with states from parameter string."""
+        params = string.split(";")
+
+        if len(params) < 4:
+            raise SyntaxError
+
+        r, s, m = int(params[0]), int(params[1]), int(params[2])
+        seed = [int(x) for x in params[3].split(",")]
+        carry = True
+
+        if len(params) >= 5:
+            if params[4].lower() == "false":
+                carry = False
+
+            elif params[4].lower() != "true":
+                stderr.write(f"Warning: Invalid carry specification {params[4]}, setting True")
+
+        return FibonacciRng(r, s, m, seed, carry)
 
 def reverse_fibonacci(
     generator: Iterator[int], max_param: int = 1000
