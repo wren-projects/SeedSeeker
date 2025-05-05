@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Iterator
 from itertools import islice
+from typing import override
 
 from mod import Mod
 
@@ -37,16 +38,18 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
         self.r = r
         self.s = s
+        self.m = m
         self.with_carry = with_carry
 
         self.queue = deque(Mod(n, m) for n in seed)
         self.carry = False
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
         r, s = self.r, self.s
 
-        value = self.queue[-r] + self.queue[-s] + self.carry
+        value = self.queue[-r] + self.queue[-s] + int(self.carry)
 
         # Check for "overflow" (in mod m) and set carry accordingly
         overflow = value < self.queue[-r] or value < self.queue[-s]
@@ -57,11 +60,13 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
         return int(value)
 
+    @override
     def state(self) -> FibonacciState:
         """Return the inner state."""
         queue = [int(n) for n in self.queue]
         return self.r, self.s, self.m, queue, self.with_carry, self.carry
 
+    @override
     @staticmethod
     def from_state(state: FibonacciState) -> FibonacciRng:
         """Create a new FibonacciRng from given state."""
@@ -69,6 +74,18 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         rng = FibonacciRng(r, s, m, seed, with_carry)
         rng.carry = carry
         return rng
+
+    @override
+    @staticmethod
+    def is_state_equal(state1: FibonacciState, state2: FibonacciState) -> bool:
+        """Check if two FibonacciRng states are equal."""
+        return (
+            state1[2] == state2[2]
+            and {state1[0], state1[1]} == {state2[0], state2[1]}
+            and state1[4] == state2[4]
+            and (state1[4] == 0 or state1[5] == state2[5])
+            and state1[3] == state2[3]
+        )
 
 
 def reverse_fibonacci(
@@ -102,27 +119,11 @@ def reverse_fibonacci(
 
                 break
             else:
-                print(
-                    f"Found a good match M = {assumed_mod}, R = {r}, S = {s}, "
-                    f"with{'' if with_carry else 'out'} carry"
-                )
-                assert assumed_mod is not None
+                if assumed_mod is None:
+                    # probably not an additive lagged fibonacci sequence
+                    return None
+
                 if output is None:
-                    output = r, s, assumed_mod, [], with_carry, False
-
+                    carry = data[-1 - r] + data[-1 - s] >= assumed_mod
+                    output = r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
     return output
-
-
-if __name__ == "__main__":
-    import random
-
-    r = 3217
-    s = 576
-    m = 2**32
-    carry = True
-    seed = [random.randint(0, m) for _ in range(max(s, r))]
-
-    PRNG = FibonacciRng(r, s, m, seed, carry)
-    print(*islice(PRNG, 100), sep=", ")
-    print(m, r, s, "with" if carry else "without", "carry")
-    print(reverse_fibonacci(PRNG, 5000))

@@ -1,12 +1,12 @@
-import time
 from collections.abc import Iterator
 from itertools import islice, pairwise
 from math import gcd
+from typing import override
 
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
-from seedseeker.utils.iterator import BufferingIterator, CountingIterator, drop
+from seedseeker.utils.iterator import BufferingIterator, drop
 from seedseeker.utils.primes import divisors
 
 LcgState = tuple[int, int, Mod]
@@ -18,6 +18,11 @@ class Lcg(IntegerRNG[LcgState]):
 
     Uses the formula: Xₙ₊₁ = (a ⋅ Xₙ + c) mod m
     """
+
+    m: int
+    a: int
+    c: int
+    x_n: Mod
 
     def __init__(self, m: int, a: int, c: int, x_0: int) -> None:
         """Create a Linear Congruential Generator (LCG)."""
@@ -31,21 +36,30 @@ class Lcg(IntegerRNG[LcgState]):
         self.c = c
         self.x_n = Mod(x_0, m)
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
         self.x_n = self.a * self.x_n + self.c
         return int(self.x_n)
 
+    @override
     def state(self) -> LcgState:
         """Return the inner state."""
         return self.a, self.c, self.x_n
 
+    @override
     @staticmethod
     def from_state(state: LcgState) -> "Lcg":
         """Create a new LCG from given state."""
         rng = Lcg(0, 0, 0, 0)
         rng.a, rng.c, rng.x_n = state
         return rng
+
+    @override
+    @staticmethod
+    def is_state_equal(state1: LcgState, state2: LcgState) -> bool:
+        """Check if two LCG states are equal."""
+        return state1 == state2
 
 
 def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
@@ -72,12 +86,14 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
 
         next(differences)
 
-        if len(guesses) < 3:
+        if len(guesses) < 30:
             continue
 
         upper_modulus = gcd(*guesses)
 
-        assert upper_modulus > 0
+        if upper_modulus == 0:
+            # not an LCG sequence
+            return None
 
         a1, a2, a3 = islice(buffered_lcg.buffer, 3)
 
@@ -100,39 +116,3 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
                 continue
 
             return multiple, increment, Mod(a3, modulus)
-
-
-if __name__ == "__main__":
-    # ranqd1 parameters
-    m = 2**32
-    a = 1664525
-    c = 1013904223
-
-    seed = time.time_ns() % m
-
-    counted = CountingIterator(Lcg(m, a, c, seed))
-
-    print(reverse_lcg(counted))
-    print(f"Done with {len(counted)} values")
-
-    # graph the planar nature of the generator
-    #
-    # import matplotlib
-    # import matplotlib.pyplot as plt
-    #
-    # matplotlib.use("QtAgg")
-    #
-    # num_points = 2**16
-    # lcg_gen = lcg(m, a, c, seed)
-    # values = [next(lcg_gen) for _ in range(num_points)]
-    #
-    # x_values = values[:-1]
-    # y_values = values[1:]
-    #
-    # plot = plt.subplots()
-    #
-    # plt.scatter(x_values, y_values, s=1)
-    # plt.title("Scatter plot of LCG generated numbers")
-    # plt.xlabel("X values")
-    # plt.ylabel("Y values")
-    # plt.show()
