@@ -1,13 +1,11 @@
 from __future__ import annotations
-from seedseeker.defs import IntegerRNG
+
 import sys
+from collections.abc import Iterator
 from typing import TextIO
 
 
-FileStreamState = tuple[bool]
-
-
-class FileStreamGenerator(IntegerRNG[FileStreamState]):
+class FileStreamGenerator(Iterator[int]):
     """Streams numbers from a filestream."""
 
     stream: TextIO
@@ -41,21 +39,6 @@ class FileStreamGenerator(IntegerRNG[FileStreamState]):
 
             raise StopIteration from err
 
-    def state(self) -> FileStreamState:
-        """Return the inner state."""
-        raise NotImplementedError
-
-    @staticmethod
-    def from_state(state: FileStreamState) -> FileStreamGenerator:
-        """Set the inner state."""
-        raise NotImplementedError
-
-    @staticmethod
-    def is_state_equal(state1: FileStreamState, state2: FileStreamState) -> bool:
-        """Check if two states are equal."""
-        raise NotImplementedError
-
-    @staticmethod
-    def from_string(string: str) -> FileStreamGenerator:
-        """Create generator with states from parameter string."""
-        raise NotImplementedError
+    def __iter__(self) -> Iterator[int]:
+        """Return the iterator."""
+        return self
