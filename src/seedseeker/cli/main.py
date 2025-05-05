@@ -1,8 +1,18 @@
-import argparse
 from argparse import ArgumentParser
 from itertools import islice, tee
-from seedseeker.generators import Lcg, MersenneTwister, Ran3, Xoshiro, FibonacciRng, FileStream
-from seedseeker.generators import reverse_fibonacci, reverse_lcg, reverse_ran3, reverse_xoshiro
+
+from seedseeker.generators import (
+    FibonacciRng,
+    FileStream,
+    Lcg,
+    MersenneTwister,
+    Ran3,
+    Xoshiro,
+    reverse_fibonacci,
+    reverse_lcg,
+    reverse_ran3,
+    reverse_xoshiro,
+)
 
 VERSION = "1.0"
 
@@ -18,7 +28,7 @@ REVERSERS = {
     "fibonacci": reverse_fibonacci,
     "lcg": reverse_lcg,
     "ran3": reverse_ran3,
-    "xoshiro": reverse_xoshiro
+    "xoshiro": reverse_xoshiro,
 }
 
 DEFAULT_SEQUENCE_LENGTH = 100
@@ -30,32 +40,42 @@ def main() -> None:
 
     parser = ArgumentParser(
         description="Tool designed to infer the state of PRNG from a sequence of generated values",
-        epilog="Please refer to the manpage for user guide, or the provided documentation for implementation details")
+        epilog="Please refer to the manpage for user guide, or the provided documentation for implementation details",
+    )
 
     gen = parser.add_mutually_exclusive_group()
 
-    gen.add_argument("-g", "--generator",
-                        nargs=3,
-                        metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
-                        help="Generates <sequence_length> numbers by generator <generator_name> with initial state <generator_state>. Generator state format is specified in documentation")
+    gen.add_argument(
+        "-g",
+        "--generator",
+        nargs=3,
+        metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
+        help="Generates <sequence_length> numbers by generator <generator_name> with initial state <generator_state>. Generator state format is specified in documentation",
+    )
 
-    gen.add_argument("-fi", "--file-in",
-                        metavar=("<filepath>"),
-                        help="Reads numbers from file")
+    gen.add_argument(
+        "-fi", "--file-in", metavar=("<filepath>"), help="Reads numbers from file"
+    )
 
-    parser.add_argument("-fo", "--file-out",
-                        metavar=("<filepath>"),
-                        help="Writes output to file")
+    parser.add_argument(
+        "-fo", "--file-out", metavar=("<filepath>"), help="Writes output to file"
+    )
 
-    parser.add_argument("-len", "--length",
-                        metavar=("<total>"),
-                        help="Maximal length of the reversed sequence, overriden when -g is used. 0 = unlimited",
-                        default=0)
+    parser.add_argument(
+        "-len",
+        "--length",
+        metavar=("<total>"),
+        help="Maximal length of the reversed sequence, overriden when -g is used. 0 = unlimited",
+        default=0,
+    )
 
-    parser.add_argument("-v", "--version",
-                        help="Program version",
-                        action="version",
-                        version=f"SeedSeeker {VERSION}")
+    parser.add_argument(
+        "-v",
+        "--version",
+        help="Program version",
+        action="version",
+        version=f"SeedSeeker {VERSION}",
+    )
 
     # TODO: Determine if this will be a thing
     # parser.add_argument("-gl", "--generator-list",
@@ -89,10 +109,8 @@ def main() -> None:
     elif args.file_in is not None:
         inp = FileStream(args.file_in)
 
-
     elif args.generator is None and args.file_in is None and args.length == 0:
         args.length = DEFAULT_SEQUENCE_LENGTH
-
 
     if args.file_out is not None:
         out = open(args.file_out)
@@ -103,8 +121,10 @@ def main() -> None:
 
     iterators = tee(inp, len(REVERSERS))
 
-    results = [(name, reverser(islice(iterator, count)))
-    for iterator, (name, reverser) in zip(iterators, REVERSERS.items(), strict=True)]
+    results = [
+        (name, reverser(islice(iterator, count)))
+        for iterator, (name, reverser) in zip(iterators, REVERSERS.items(), strict=True)
+    ]
 
     [print(f"{name}: {state}") for name, state in results]
 

@@ -105,9 +105,12 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
                 carry = False
 
             elif params[4].lower() != "true":
-                stderr.write(f"Warning: Invalid carry specification {params[4]}, setting True")
+                stderr.write(
+                    f"Warning: Invalid carry specification {params[4]}, setting True"
+                )
 
         return FibonacciRng(r, s, m, seed, carry)
+
 
 def reverse_fibonacci(
     generator: Iterator[int], max_param: int = 1000

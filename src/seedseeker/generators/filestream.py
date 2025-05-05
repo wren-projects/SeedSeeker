@@ -6,6 +6,7 @@ from typing import TextIO
 
 FileStreamState = tuple[bool]
 
+
 class FileStreamGenerator(IntegerRNG[FileStreamState]):
     """Streams numbers from a filestream."""
 
@@ -24,13 +25,15 @@ class FileStreamGenerator(IntegerRNG[FileStreamState]):
                 self.stream = open(path)
 
             except OSError:
-                sys.stderr.write(f"Error: File `{path}` does not exist or it is not accessible")
+                sys.stderr.write(
+                    f"Error: File `{path}` does not exist or it is not accessible"
+                )
                 sys.exit(2)
 
     def __next__(self):
         """Next item."""
         try:
-                return int(self.stream.readline().strip())
+            return int(self.stream.readline().strip())
 
         except EOFError as err:
             if self.path != "":

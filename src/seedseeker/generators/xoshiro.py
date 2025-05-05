@@ -63,6 +63,7 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         seed = XoshiroState([s0, s1, s2, s3])
         return Xoshiro(seed)
 
+
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
     Rotate integer x left by k bits.

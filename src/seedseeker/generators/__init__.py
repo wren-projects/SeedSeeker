@@ -30,5 +30,5 @@ __all__ = [
     "reverse_lcg",
     "reverse_mersenne",
     "reverse_ran3",
-    "reverse_xoshiro"
+    "reverse_xoshiro",
 ]
