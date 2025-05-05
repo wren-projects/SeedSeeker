@@ -91,7 +91,9 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
 
         upper_modulus = gcd(*guesses)
 
-        assert upper_modulus > 0
+        if upper_modulus == 0:
+            # not an LCG sequence
+            return None
 
         a1, a2, a3 = islice(buffered_lcg.buffer, 3)
 

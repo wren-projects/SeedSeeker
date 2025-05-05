@@ -119,11 +119,10 @@ def reverse_fibonacci(
 
                 break
             else:
-                print(
-                    f"Found a good match M = {assumed_mod}, R = {r}, S = {s}, "
-                    f"with{'' if with_carry else 'out'} carry"
-                )
-                assert assumed_mod is not None
+                if assumed_mod is None:
+                    # probably not an additive lagged fibonacci sequence
+                    return None
+
                 if output is None:
                     carry = data[-1 - r] + data[-1 - s] >= assumed_mod
                     output = r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
