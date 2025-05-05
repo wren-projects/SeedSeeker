@@ -3,12 +3,12 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Iterator
 from itertools import islice
+from sys import stderr
 from typing import override
 
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
-from sys import stderr
 
 FibonacciState = tuple[int, int, int, list[int], bool, bool]
 
