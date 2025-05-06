@@ -162,9 +162,17 @@ def test_xoshiro_reverser(seed: int, values_to_consume: int) -> None:
     [
         (
             random.randint(0, 2**32 - 1),
-            random.randint(0, 100),
+            random.randint(10, 50),
         ),
-        (123456789, 50),
+        (
+            random.randint(0, 2**32 - 1),
+            random.randint(10, 50),
+        ),
+        (
+            random.randint(0, 2**32 - 1),
+            random.randint(10, 50),
+        ),
+        (123456789, 100),
     ],
 )
 def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
@@ -174,8 +182,10 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
         next(prng)
 
     found = reverse_mersenne(prng)
+    assert found is not None
 
-    original = next(prng)
-    predicted = next(found)
+    for i in range(10 * values_to_consume):
+        original = next(prng)
+        predicted = next(found)
 
-    assert original == predicted
+        assert original == predicted, f"{i}-th value: {original} != {predicted}"

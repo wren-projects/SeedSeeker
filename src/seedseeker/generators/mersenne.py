@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from itertools import islice
+from typing import override
 
 from randcrack import RandCrack
 
@@ -32,7 +33,7 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     "Predict means that Mersenne Class is copy of RandCrack."
     state_array: list[int]
     state_index: int
-    predict: bool
+    rand_crack: RandCrack | None
 
     def __init__(self, seed: int):
         """Create a new Mersenne Twister 19937 PRNG from given seed."""
@@ -40,15 +41,16 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
 
         self.state_index = 0
         self.state_array = [seed] + [0] * (self.N - 1)
-        self.predict = False
+        self.rand_crack = None
 
         for i in range(1, self.N):
             seed = self.F * (seed ^ (seed >> (self.W - 2))) % self.MODULO + i
             self.state_array[i] = seed
 
+    @override
     def __next__(self) -> int:
         """Return the next value."""
-        if not self.predict:
+        if self.rand_crack is None:
             k = self.state_index
             j = k - (self.N - 1)
             if j < 0:
@@ -74,47 +76,45 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
             y ^= (y << self.S) & self.B
             y ^= (y << self.T) & self.C
             y ^= y >> self.L
-            return y & 0xFFFFFFFF  # Ensure 32-bit output4
+            return y & 0xFFFFFFFF  # Ensure 32-bit output
 
-        predictor = RandCrack()
-        predictor.mt = self.state_array
-        predictor.state = True
-        predictor.counter = self.state_index
-        result = predictor.predict_getrandbits(32)
-        self.state_index += 1
-        return result
+        return self.rand_crack.predict_getrandbits(32)
 
+
+    @override
     def state(self) -> MersenneTwisterState | RandCrackerState:
         """Return the inner state."""
-        if not self.predict:
+        if self.rand_crack is None:
             return self.state_array.copy(), self.state_index
-        return self.state_array.copy(), self.state_index
 
+        return (self.rand_crack.mt, self.rand_crack.counter)
+
+    @override
     @staticmethod
     def from_state(state: RandCrackerState) -> "MersenneTwister":
         """Set the inner state."""
         rng = MersenneTwister(0)
-        rng.state_array, rng.state_index = state[0].copy(), state[1]
-        rng.predict = True
+        rng.rand_crack = RandCrack()
+        rng.rand_crack.mt, rng.rand_crack.counter = state
+        rng.rand_crack.state = True
         return rng
 
+    @override
+    @staticmethod
+    def is_state_equal(
+        state1: MersenneTwisterState, state2: MersenneTwisterState
+    ) -> bool:
+        raise NotImplementedError
 
-def reverse_mersenne(iteration: Iterator[int]) -> MersenneTwister | None:
+
+def reverse_mersenne(mersenne: Iterator[int]) -> MersenneTwister | None:
     """Find state using RandCrack algorithm from an iterator."""
-    battery = list(
-        islice(iteration, 624)
-    )  # 624 will be total amount of numbers in txt file
-
-    if len(battery) < 624:
-        return None
-
     predictor = RandCrack()
 
-    for value in battery:
+    for value in islice(mersenne, 624):
         predictor.submit(value)
 
-    rand_state: RandCrackerState = (predictor.mt, predictor.counter)
-    return MersenneTwister.from_state(rand_state)
+    return MersenneTwister.from_state((predictor.mt, predictor.counter))
 
 
 if __name__ == "__main__":
