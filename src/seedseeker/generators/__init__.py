@@ -3,7 +3,6 @@ from seedseeker.generators.fibonacci import (
     FibonacciState,
     reverse_fibonacci,
 )
-from seedseeker.generators.filestream import FileStreamGenerator as FileStream
 from seedseeker.generators.lcg import Lcg, LcgState, reverse_lcg
 from seedseeker.generators.mersenne import (
     MersenneTwister,
@@ -16,7 +15,6 @@ from seedseeker.generators.xoshiro import Xoshiro, XoshiroState, reverse_xoshiro
 __all__ = [
     "FibonacciRng",
     "FibonacciState",
-    "FileStream",
     "Lcg",
     "LcgState",
     "MersenneTwister",

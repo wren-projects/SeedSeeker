@@ -1,9 +1,12 @@
+import sys
 from argparse import ArgumentParser
+from collections.abc import Iterator
+from contextlib import nullcontext
 from itertools import islice, tee
+from typing import TextIO
 
 from seedseeker.generators import (
     FibonacciRng,
-    FileStream,
     Lcg,
     MersenneTwister,
     Ran3,
@@ -13,6 +16,7 @@ from seedseeker.generators import (
     reverse_ran3,
     reverse_xoshiro,
 )
+from seedseeker.utils.filestream import FileStream
 
 VERSION = "1.0"
 
@@ -36,13 +40,15 @@ DEFAULT_SEQUENCE_LENGTH = 100
 
 def main() -> None:
     """CLI entry point."""
-    import sys
-
     parser = ArgumentParser(
-        description=("Tool designed to infer the state of PRNG"
-        " from a sequence of generated values"),
-        epilog=("Please refer to the manpage for user guide, or the"
-        " provided documentation for implementation details"),
+        description=(
+            "Tool designed to infer the state of PRNG"
+            " from a sequence of generated values"
+        ),
+        epilog=(
+            "Please refer to the manpage for user guide, or the"
+            " provided documentation for implementation details"
+        ),
     )
 
     gen = parser.add_mutually_exclusive_group()
@@ -52,9 +58,11 @@ def main() -> None:
         "--generator",
         nargs=3,
         metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
-        help=("Generates <sequence_length> numbers by generator <generator_name> with "
-              "initial state <generator_state>. Generator state format"
-              " is specified in documentation")
+        help=(
+            "Generates <sequence_length> numbers by generator <generator_name> with "
+            "initial state <generator_state>. Generator state format"
+            " is specified in documentation"
+        ),
     )
 
     gen.add_argument(
@@ -69,8 +77,10 @@ def main() -> None:
         "-len",
         "--length",
         metavar=("<total>"),
-        help=("Maximal length of the reversed sequence, overriden when -g is used."
-        " 0 = unlimited"),
+        help=(
+            "Maximal length of the reversed sequence, overriden when -g is used."
+            " 0 = unlimited"
+        ),
         default=0,
     )
 
@@ -92,38 +102,55 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    inp = FileStream()
-    out = sys.stdout
-    err = sys.stderr
-
     if args.generator is not None:
         args.length = int(args.generator[2])
 
-        g = args.generator[0]
+        generator, parameters, count = args.generator
 
-        if g not in GENERATORS:
-            sys.stderr.write(f"Unknown generator: {g}")
+        if generator not in GENERATORS:
+            print(f"Error: Unknown generator {generator}", file=sys.stderr)
             sys.exit(1)
 
-        pars = args.generator[1]
-
         try:
-            inp = GENERATORS[g].from_string(pars)
-
+            inp = GENERATORS[generator].from_string(parameters)
         except SyntaxError:
-            err.write(f"Error in syntax of generator parameters {pars}\n")
+            print(
+                f"Error in syntax of generator parameters {parameters}", file=sys.stderr
+            )
+            sys.exit(1)
 
-    elif args.file_in is not None:
-        inp = FileStream(args.file_in)
+        with (
+            open(args.file_out, "w")
+            if args.file_out is not None
+            else nullcontext(sys.stdout) as out
+        ):
+            run_reversers(inp, out, count)
 
-    elif args.generator is None and args.file_in is None and args.length == 0:
+        return
+
+    if args.generator is None and args.file_in is None and args.length == 0:
         args.length = DEFAULT_SEQUENCE_LENGTH
-
-    if args.file_out is not None:
-        out = open(args.file_out)
 
     count = None if int(args.length) == 0 else int(args.length)
 
+    try:
+        with (
+            FileStream(args.file_in) as inp,
+            open(args.file_out, "w")
+            if args.file_out is not None
+            else nullcontext(sys.stdout) as out,
+        ):
+            run_reversers(inp, out, count)
+    except OSError:
+        print(
+            f"Error: File `{args.file_out}` does not exist or is not accessible",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
+def run_reversers(inp: Iterator[int], out: TextIO, count: int | None) -> None:
+    """Run all reversers on given input sequence and print the results."""
     # TODO: Reversing process
 
     iterators = tee(inp, len(REVERSERS))
