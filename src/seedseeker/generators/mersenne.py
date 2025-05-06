@@ -1,9 +1,13 @@
+from collections.abc import Iterator
 from itertools import islice
 from typing import override
+
+from randcrack import RandCrack
 
 from seedseeker.defs import IntegerRNG
 
 MersenneTwisterState = tuple[list[int], int]
+RandCrackerState = tuple[list[int], int]
 
 
 class MersenneTwister(IntegerRNG[MersenneTwisterState]):
@@ -27,6 +31,7 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
 
     state_array: list[int]
     state_index: int
+    rand_crack: RandCrack | None
 
     def __init__(self, seed: int):
         """Create a new Mersenne Twister 19937 PRNG from given seed."""
@@ -34,54 +39,76 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
 
         self.state_index = 0
         self.state_array = [seed] + [0] * (self.N - 1)
+        self.rand_crack = None
 
         for i in range(1, self.N):
             seed = self.F * (seed ^ (seed >> (self.W - 2))) % self.MODULO + i
             self.state_array[i] = seed
 
     @override
-    def __next__(self):
+    def __next__(self) -> int:
         """Return the next value."""
-        k = self.state_index
-        j = k - (self.N - 1)
-        if j < 0:
-            j += self.N
+        if self.rand_crack is None:
+            k = self.state_index
+            j = k - (self.N - 1)
+            if j < 0:
+                j += self.N
 
-        x = (self.state_array[k] & self.UMASK) | (self.state_array[j] & self.LMASK)
-        x_a = x >> 1
-        if x & 1:  # modulo 2 == 1
-            x_a ^= self.A
+            x = (self.state_array[k] & self.UMASK) | (self.state_array[j] & self.LMASK)
+            x_a = x >> 1
+            if x & 1:  # modulo 2 == 1
+                x_a ^= self.A
 
-        j = k - (self.N - self.M)
-        if j < 0:
-            j += self.N
+            j = k - (self.N - self.M)
+            if j < 0:
+                j += self.N
 
-        x = self.state_array[j] ^ x_a
-        self.state_array[k] = x
-        k += 1
-        if k >= self.N:
-            k = 0
-        self.state_index = k
+            x = self.state_array[j] ^ x_a
+            self.state_array[k] = x
+            k += 1
+            if k >= self.N:
+                k = 0
+            self.state_index = k
 
-        y = x ^ (x >> self.U)
-        y ^= (y << self.S) & self.B
-        y ^= (y << self.T) & self.C
-        y ^= y >> self.L
-        return y
+            y = x ^ (x >> self.U)
+            y ^= (y << self.S) & self.B
+            y ^= (y << self.T) & self.C
+            y ^= y >> self.L
+            return y & 0xFFFFFFFF  # Ensure 32-bit output
+
+        return self.rand_crack.predict_getrandbits(32)
 
     @override
-    def state(self) -> MersenneTwisterState:
+    def state(self) -> MersenneTwisterState | RandCrackerState:
         """Return the inner state."""
-        return self.state_array, self.state_index
+        if self.rand_crack is None:
+            return self.state_array.copy(), self.state_index
+
+        return (self.rand_crack.mt, self.rand_crack.counter)
 
     @override
     @staticmethod
-    def from_state(state: MersenneTwisterState) -> "MersenneTwister":
+    def from_state(state: RandCrackerState) -> "MersenneTwister":
         """Set the inner state."""
         rng = MersenneTwister(0)
-        rng.state_array, rng.state_index = state
+        rng.rand_crack = RandCrack()
+        rng.rand_crack.mt, rng.rand_crack.counter = state
+        rng.rand_crack.state = True
         return rng
 
+    @override
+    @staticmethod
+    def is_state_equal(
+        state1: MersenneTwisterState, state2: MersenneTwisterState
+    ) -> bool:
+        raise NotImplementedError
 
-if __name__ == "__main__":
-    print(*islice(MersenneTwister(19650218), 100), sep=", ")
+
+def reverse_mersenne(mersenne: Iterator[int]) -> MersenneTwister | None:
+    """Find state using RandCrack algorithm from an iterator."""
+    predictor = RandCrack()
+
+    for value in islice(mersenne, 624):
+        predictor.submit(value)
+
+    return MersenneTwister.from_state((predictor.mt, predictor.counter))
