@@ -14,6 +14,7 @@ from seedseeker.generators import (
     reverse_ran3,
     reverse_xoshiro,
 )
+from seedseeker.generators.xoshiro import XoshiroState
 
 
 @pytest.mark.parametrize(
@@ -108,6 +109,7 @@ def test_fibonacci_reverser(
     prng = FibonacciRng(r, s, m, seed, overflow)
     [next(prng) for _ in range(values_to_consume)]
     found = reverse_fibonacci(prng)
+    assert found is not None
     expected = prng.state()
     assert FibonacciRng.is_state_equal(found, expected)
 
@@ -129,6 +131,7 @@ def test_lcg_reverser(
     prng = Lcg(m, a, b, seed)
     [next(prng) for _ in range(values_to_consume)]
     found = reverse_lcg(prng)
+    assert found is not None
     expected = prng.state()
     assert Lcg.is_state_equal(found, expected)
 
@@ -137,22 +140,23 @@ def test_lcg_reverser(
     ("seed", "values_to_consume"),
     [
         (
-            [
+            (
                 random.randint(0, 2**64),
                 random.randint(0, 2**64),
                 random.randint(0, 2**64),
                 random.randint(0, 2**64),
-            ],
+            ),
             random.randint(0, 100),
         ),
-        ([random.randint(0, 2**64), 0, 0, 0], 50),
+        ((random.randint(0, 2**64), 0, 0, 0), 50),
     ],
 )
-def test_xoshiro_reverser(seed: int, values_to_consume: int) -> None:
+def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
     """Test the reverser for a given Xoshiro generator params."""
     prng = Xoshiro(seed)
     [next(prng) for _ in range(values_to_consume)]
     found = reverse_xoshiro(prng)
+    assert found is not None
     expected = prng.state()
     assert Xoshiro.is_state_equal(found, expected)
 
