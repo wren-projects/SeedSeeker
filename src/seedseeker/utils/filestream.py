@@ -6,17 +6,17 @@ from typing import TextIO
 
 
 class FileStream(Iterator[int]):
-    """Streams numbers from a filestream."""
+    """Streams numbers from a file or stdin."""
 
     stream: TextIO | None
     path: str | None
 
     def __init__(self, path: str | None = None) -> None:
-        """Read from file on `path` if provided, otherwise read from `stdin`."""
+        """Reads from file `path` if provided, otherwise from `stdin`."""
         self.path = path
 
     def __enter__(self) -> FileStream:
-        """Enter context and open stream."""
+        """Enter context and open the stream."""
         if self.path is None:
             self.stream = sys.stdin
         else:

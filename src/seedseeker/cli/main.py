@@ -1,5 +1,5 @@
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from collections.abc import Iterator
 from contextlib import nullcontext
 from itertools import islice, tee
@@ -103,32 +103,9 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.generator is not None:
-        args.length = int(args.generator[2])
+        return run_from_generator(args)
 
-        generator, parameters, count = args.generator
-
-        if generator not in GENERATORS:
-            print(f"Error: Unknown generator {generator}", file=sys.stderr)
-            sys.exit(1)
-
-        try:
-            inp = GENERATORS[generator].from_string(parameters)
-        except SyntaxError:
-            print(
-                f"Error in syntax of generator parameters {parameters}", file=sys.stderr
-            )
-            sys.exit(1)
-
-        with (
-            open(args.file_out, "w")
-            if args.file_out is not None
-            else nullcontext(sys.stdout) as out
-        ):
-            run_reversers(inp, out, count)
-
-        return
-
-    if args.generator is None and args.file_in is None and args.length == 0:
+    if args.file_in is None and args.length == 0:
         args.length = DEFAULT_SEQUENCE_LENGTH
 
     count = None if int(args.length) == 0 else int(args.length)
@@ -147,6 +124,31 @@ def main() -> None:
             file=sys.stderr,
         )
         sys.exit(2)
+
+
+def run_from_generator(args: Namespace) -> None:
+    """Run all reversers on sequence from given generator."""
+    generator, parameters, count = args.generator
+
+    if generator not in GENERATORS:
+        print(f"Error: Unknown generator {generator}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        inp = GENERATORS[generator].from_string(parameters)
+    except SyntaxError:
+        print(
+            f"Error in syntax of generator parameters {parameters}", file=sys.stderr
+        )
+        sys.exit(1)
+
+    with (
+        open(args.file_out, "w")
+        if args.file_out is not None
+        else nullcontext(sys.stdout) as out
+    ):
+        run_reversers(inp, out, int(count))
+
 
 
 def run_reversers(inp: Iterator[int], out: TextIO, count: int | None) -> None:
