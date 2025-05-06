@@ -13,24 +13,22 @@ RandCrackerState = tuple[list[int], int]
 class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     """Mersenne Twister 19937 PRNG."""
 
-    N = 624
-    M = 397
-    W = 32
-    R = 31
-    UMASK = 0xFFFFFFFF << R
-    LMASK = 0xFFFFFFFF >> (W - R)
-    A = 0x9908B0DF
-    U = 11
-    S = 7
-    T = 15
-    L = 18
-    B = 0x9D2C5680
-    C = 0xEFC60000
-    F = 1812433253
-    MODULO = 2**32
+    N: int = 624
+    M: int = 397
+    W: int = 32
+    R: int = 31
+    UMASK: int = 0xFFFFFFFF << R
+    LMASK: int = 0xFFFFFFFF >> (W - R)
+    A: int = 0x9908B0DF
+    U: int = 11
+    S: int = 7
+    T: int = 15
+    L: int = 18
+    B: int = 0x9D2C5680
+    C: int = 0xEFC60000
+    F: int = 1812433253
+    MODULO: int = 2**32
 
-    "Class contains state, index and predict."
-    "Predict means that Mersenne Class is copy of RandCrack."
     state_array: list[int]
     state_index: int
     rand_crack: RandCrack | None
@@ -80,7 +78,6 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
 
         return self.rand_crack.predict_getrandbits(32)
 
-
     @override
     def state(self) -> MersenneTwisterState | RandCrackerState:
         """Return the inner state."""
@@ -115,12 +112,3 @@ def reverse_mersenne(mersenne: Iterator[int]) -> MersenneTwister | None:
         predictor.submit(value)
 
     return MersenneTwister.from_state((predictor.mt, predictor.counter))
-
-
-if __name__ == "__main__":
-    orig = MersenneTwister(159753478)
-    pred = reverse_mersenne(orig)
-
-    if pred is not None:
-        print(f"Predicted: {pred.__next__()}")
-        print(f"Original: {orig.__next__()}")
