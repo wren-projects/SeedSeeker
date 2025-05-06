@@ -5,10 +5,12 @@ import pytest
 from seedseeker.generators import (
     FibonacciRng,
     Lcg,
+    MersenneTwister,
     Ran3,
     Xoshiro,
     reverse_fibonacci,
     reverse_lcg,
+    reverse_mersenne,
     reverse_ran3,
     reverse_xoshiro,
 )
@@ -153,3 +155,27 @@ def test_xoshiro_reverser(seed: int, values_to_consume: int) -> None:
     found = reverse_xoshiro(prng)
     expected = prng.state()
     assert Xoshiro.is_state_equal(found, expected)
+
+
+@pytest.mark.parametrize(
+    ("seed", "values_to_consume"),
+    [
+        (
+            random.randint(0, 2**32 - 1),
+            random.randint(0, 100),
+        ),
+        (123456789, 50),
+    ],
+)
+def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
+    """Testing Mersenne Twister reverse function."""
+    prng = MersenneTwister(seed)
+    for _ in range(values_to_consume):
+        next(prng)
+
+    found = reverse_mersenne(prng)
+
+    original = next(prng)
+    predicted = next(found)
+
+    assert original == predicted

@@ -28,10 +28,11 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     F = 1812433253
     MODULO = 2**32
 
+    "Class contains state, index and predict."
+    "Predict means that Mersenne Class is copy of RandCrack."
     state_array: list[int]
-    predict_array: list[int]
-    predict: bool
     state_index: int
+    predict: bool
 
     def __init__(self, seed: int):
         """Create a new Mersenne Twister 19937 PRNG from given seed."""
@@ -39,7 +40,6 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
 
         self.state_index = 0
         self.state_array = [seed] + [0] * (self.N - 1)
-        self.predict_array = []
         self.predict = False
 
         for i in range(1, self.N):
@@ -77,7 +77,7 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
             return y & 0xFFFFFFFF  # Ensure 32-bit output4
 
         predictor = RandCrack()
-        predictor.mt = self.predict_array
+        predictor.mt = self.state_array
         predictor.state = True
         predictor.counter = self.state_index
         result = predictor.predict_getrandbits(32)
@@ -88,21 +88,21 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         """Return the inner state."""
         if not self.predict:
             return self.state_array.copy(), self.state_index
-        return self.predict_array.copy(), self.state_index
+        return self.state_array.copy(), self.state_index
 
     @staticmethod
     def from_state(state: RandCrackerState) -> "MersenneTwister":
         """Set the inner state."""
         rng = MersenneTwister(0)
-        rng.predict_array, rng.state_index = state[0].copy(), state[1]
+        rng.state_array, rng.state_index = state[0].copy(), state[1]
         rng.predict = True
         return rng
 
 
-def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackerState | None:
+def reverse_mersenne(iteration: Iterator[int]) -> MersenneTwister | None:
     """Find state using RandCrack algorithm from an iterator."""
     battery = list(
-        islice(mersenne, 624)
+        islice(iteration, 624)
     )  # 624 will be total amount of numbers in txt file
 
     if len(battery) < 624:
@@ -114,14 +114,13 @@ def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackerState | None:
         predictor.submit(value)
 
     rand_state: RandCrackerState = (predictor.mt, predictor.counter)
-    return rand_state
+    return MersenneTwister.from_state(rand_state)
 
 
 if __name__ == "__main__":
     orig = MersenneTwister(159753478)
-    pred_state = reverse_mersenne(orig)
+    pred = reverse_mersenne(orig)
 
-    if pred_state is not None:
-        pred: MersenneTwister = orig.from_state(pred_state)
+    if pred is not None:
         print(f"Predicted: {pred.__next__()}")
         print(f"Original: {orig.__next__()}")
