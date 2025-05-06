@@ -188,8 +188,8 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
     found = reverse_mersenne(prng)
     assert found is not None
 
-    for i in range(10 * values_to_consume):
+    for _ in range(10 * values_to_consume):
         original = next(prng)
         predicted = next(found)
 
-        assert original == predicted, f"{i}-th value: {original} != {predicted}"
+        assert original == predicted
