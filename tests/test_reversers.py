@@ -161,6 +161,7 @@ def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
     assert Xoshiro.is_state_equal(found, expected)
 
 
+
 @pytest.mark.parametrize(
     ("seed", "values_to_consume"),
     [
@@ -188,8 +189,10 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
     found = reverse_mersenne(prng)
     assert found is not None
 
+    randcrack = MersenneTwister.from_state(found)
+
     for _ in range(10 * values_to_consume):
         original = next(prng)
-        predicted = next(found)
+        predicted = next(randcrack)
 
         assert original == predicted
