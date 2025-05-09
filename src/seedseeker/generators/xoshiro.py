@@ -120,5 +120,4 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState | None:
     except StopIteration:
         ...
 
-
     return reversed_gen.state()

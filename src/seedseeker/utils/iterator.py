@@ -1,5 +1,6 @@
 from collections import deque
 from collections.abc import Iterator
+from contextlib import suppress
 from typing import override
 
 
@@ -69,10 +70,8 @@ def drop[T](iterator: Iterator[T], n: int) -> Iterator[T]:
     Changes the iterator in-place but also returns the iterator for convenience.
     If the iterator has fewer than n values, only drop the available values.
     """
-    try:
+    with suppress(StopIteration):
         for _ in range(n):
             _ = next(iterator)
-    except StopIteration:
-        pass
 
     return iterator

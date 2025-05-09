@@ -85,6 +85,9 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
     )
     drop(differences, 4)  # fill the buffer
 
+    if len(differences.buffer) < 4:
+        return None
+
     guesses: list[int] = []
 
     while True:
@@ -97,15 +100,15 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
 
         try:
             next(differences)
+            if len(guesses) < 30:
+                continue
         except StopIteration:
-            return None
-
-        if len(guesses) < 30:
-            continue
+            if len(guesses) < 8:
+                return None
 
         upper_modulus = gcd(*guesses)
 
-        if upper_modulus == 0:
+        if upper_modulus <= 1:
             # not an LCG sequence
             return None
 

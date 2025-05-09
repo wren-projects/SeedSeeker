@@ -113,13 +113,13 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
 
 # upper bound on the parameter r
-MAX_LAG = 10000
+MAX_LAG = 1000
 
 
 def reverse_fibonacci(generator: Iterator[int]) -> FibonacciState | None:
     """Reverse enginner additive Lagged Fibonacci parameters."""
     buff = BufferingIterator(generator)
-    drop(buff, MAX_LAG+100)
+    drop(buff, MAX_LAG + 100)
     data = list(buff.buffer)
 
     for r in range(MAX_LAG):

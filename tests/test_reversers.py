@@ -1,4 +1,6 @@
 import random
+from collections.abc import Iterator
+from itertools import islice
 
 import pytest
 
@@ -15,6 +17,7 @@ from seedseeker.generators import (
     reverse_xoshiro,
 )
 from seedseeker.generators.xoshiro import XoshiroState
+from seedseeker.utils.iterator import drop
 
 
 @pytest.mark.parametrize(
@@ -35,12 +38,28 @@ def test_ran3_reverser(seed: int, values_to_consume: int) -> None:
     reverse-engineer the parameters and compare them with the current state of
     the generator.
     """
-    print(seed)
     prng = Ran3(seed)
     [next(prng) for _ in range(values_to_consume)]
     found = reverse_ran3(prng)
+    assert found is not None
     expected = prng.state()
     assert Ran3.is_state_equal(found, expected)
+
+
+@pytest.mark.parametrize(
+    ("prng"),
+    [
+        (drop(MersenneTwister(0), 50)),
+        (Lcg(2**32, 11, 0, 100)),
+        (drop(Xoshiro((1, 2, 3, 4)), 50)),
+        (islice(Ran3(100), 10)),
+        (islice(FibonacciRng(2, 3, 2**32, [4, 5, 6], False), 10)),
+        (iter(())),
+    ],
+)
+def test_ran3_reverser_negative(prng: Iterator[int]) -> None:
+    """Test the reverser with another generator and check that it fails."""
+    assert reverse_ran3(prng) is None
 
 
 def create_random_fibonaci_test() -> tuple[int, int, int, list[int], int, bool]:
@@ -105,13 +124,29 @@ def test_fibonacci_reverser(
     reverse-engineer the parameters and compare them with the current state of
     the generator.
     """
-    print(r, s, m, seed, values_to_consume, overflow)
     prng = FibonacciRng(r, s, m, seed, overflow)
-    [next(prng) for _ in range(values_to_consume)]
+    drop(prng, values_to_consume)
+
     found = reverse_fibonacci(prng)
     assert found is not None
+
     expected = prng.state()
     assert FibonacciRng.is_state_equal(found, expected)
+
+
+@pytest.mark.parametrize(
+    ("prng"),
+    [
+        (drop(MersenneTwister(0), 50)),
+        (Lcg(2**32, 11, 0, 100)),
+        (drop(Xoshiro((1, 2, 3, 4)), 50)),
+        (islice(FibonacciRng(2, 3, 2**32, [4, 5, 6], False), 2)),
+        (iter(())),
+    ],
+)
+def test_fibonacci_reverser_negative(prng: Iterator[int]) -> None:
+    """Test the reverser with another generator and check that it fails."""
+    assert reverse_fibonacci(prng) is None
 
 
 @pytest.mark.parametrize(
@@ -129,11 +164,29 @@ def test_lcg_reverser(
 ) -> None:
     """Test the reverser for a given LCG generator params."""
     prng = Lcg(m, a, b, seed)
-    [next(prng) for _ in range(values_to_consume)]
+    drop(prng, values_to_consume)
+
     found = reverse_lcg(prng)
     assert found is not None
+
     expected = prng.state()
     assert Lcg.is_state_equal(found, expected)
+
+
+@pytest.mark.parametrize(
+    ("prng"),
+    [
+        (drop(MersenneTwister(0), 50)),
+        (Ran3(100)),
+        (drop(Xoshiro((1, 2, 3, 4)), 50)),
+        (islice(Lcg(2**32, 11, 0, 100), 10)),
+        (islice(FibonacciRng(2, 3, 2**32, [4, 5, 6], False), 10)),
+        (iter(())),
+    ],
+)
+def test_lcg_reverser_negative(prng: Iterator[int]) -> None:
+    """Test the reverser with another generator and check that it fails."""
+    assert reverse_lcg(prng) is None
 
 
 @pytest.mark.parametrize(
@@ -154,12 +207,28 @@ def test_lcg_reverser(
 def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
     """Test the reverser for a given Xoshiro generator params."""
     prng = Xoshiro(seed)
-    [next(prng) for _ in range(values_to_consume)]
+    drop(prng, values_to_consume)
+
     found = reverse_xoshiro(prng)
     assert found is not None
+
     expected = prng.state()
     assert Xoshiro.is_state_equal(found, expected)
 
+@pytest.mark.parametrize(
+    ("prng"),
+    [
+        (drop(MersenneTwister(0), 50)),
+        (Ran3(100)),
+        (FibonacciRng(2, 3, 2**32, [4, 5, 6], False)),
+        (islice(Lcg(2**32, 11, 0, 100), 10)),
+        (islice(drop(Xoshiro((1, 2, 3, 4)), 50), 3)),
+        (iter(())),
+    ],
+)
+def test_xoshiro_reverser_negative(prng: Iterator[int]) -> None:
+    """Test the reverser with another generator and check that it fails."""
+    assert reverse_xoshiro(prng) is None
 
 
 @pytest.mark.parametrize(
@@ -183,8 +252,7 @@ def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
 def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
     """Testing Mersenne Twister reverse function."""
     prng = MersenneTwister(seed)
-    for _ in range(values_to_consume):
-        next(prng)
+    drop(prng, values_to_consume)
 
     found = reverse_mersenne(prng)
     assert found is not None
@@ -196,3 +264,19 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
         predicted = next(randcrack)
 
         assert original == predicted
+
+
+@pytest.mark.parametrize(
+    ("prng"),
+    [
+        (Lcg(2**32, 11, 0, 100)),
+        (Ran3(100)),
+        (FibonacciRng(2, 3, 2**32, [4, 5, 6], False)),
+        (islice(drop(MersenneTwister(0), 50), 10)),
+        (islice(drop(Xoshiro((1, 2, 3, 4)), 50), 3)),
+        (iter(())),
+    ],
+)
+def test_mersenne_reverser_negative(prng: Iterator[int]) -> None:
+    """Test the reverser with another generator and check that it fails."""
+    assert reverse_mersenne(prng) is None

@@ -121,10 +121,14 @@ def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackerState | None:
     predictor = RandCrack()
     counting = CountingIterator(mersenne)
 
-    try:
-        for value in islice(counting, 624):
-            predictor.submit(value)
-    except StopIteration:
+    for value in islice(counting, 624):
+        predictor.submit(value)
+
+    if counting.count < 624:
         return None
+
+    for value in islice(counting, 100):
+        if value != predictor.predict_getrandbits(32):
+            return None
 
     return predictor.mt, predictor.counter
