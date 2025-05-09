@@ -107,10 +107,18 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState | None:
     og_state = (s0, s1, s2, s3)
 
     # advance to the same position we left the input in
-    gen = Xoshiro.from_state(og_state)
-    _ = next(gen)
-    _ = next(gen)
-    _ = next(gen)
-    _ = next(gen)
+    reversed_gen = Xoshiro.from_state(og_state)
+    _ = next(reversed_gen)
+    _ = next(reversed_gen)
+    _ = next(reversed_gen)
+    _ = next(reversed_gen)
 
-    return gen.state()
+    try:
+        for _ in range(100):
+            if next(gen) != next(reversed_gen):
+                return None
+    except StopIteration:
+        ...
+
+
+    return reversed_gen.state()

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Iterator
-from itertools import islice
 from sys import stderr
 from typing import override
 
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
+from seedseeker.utils.iterator import BufferingIterator, drop
 
 FibonacciState = tuple[int, int, int, list[int], bool, bool]
 
@@ -115,9 +115,12 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 # upper bound on the parameter r
 MAX_LAG = 10000
 
+
 def reverse_fibonacci(generator: Iterator[int]) -> FibonacciState | None:
     """Reverse enginner additive Lagged Fibonacci parameters."""
-    data = list(islice(generator, MAX_LAG + 100))
+    buff = BufferingIterator(generator)
+    drop(buff, MAX_LAG+100)
+    data = list(buff.buffer)
 
     for r in range(MAX_LAG):
         for s in range(1, r):
@@ -147,7 +150,6 @@ def reverse_fibonacci(generator: Iterator[int]) -> FibonacciState | None:
                 if assumed_mod is None:
                     # probably not an additive lagged fibonacci sequence
                     return None
-
 
                 carry = data[-1 - r] + data[-1 - s] >= assumed_mod
                 return r, s, assumed_mod, data[-max(r, s) :], with_carry, carry

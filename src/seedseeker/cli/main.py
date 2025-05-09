@@ -137,9 +137,7 @@ def run_from_generator(args: Namespace) -> None:
     try:
         inp = GENERATORS[generator].from_string(parameters)
     except SyntaxError:
-        print(
-            f"Error in syntax of generator parameters {parameters}", file=sys.stderr
-        )
+        print(f"Error in syntax of generator parameters {parameters}", file=sys.stderr)
         sys.exit(1)
 
     with (
@@ -148,7 +146,6 @@ def run_from_generator(args: Namespace) -> None:
         else nullcontext(sys.stdout) as out
     ):
         run_reversers(inp, out, int(count))
-
 
 
 def run_reversers(inp: Iterator[int], out: TextIO, count: int | None) -> None:
