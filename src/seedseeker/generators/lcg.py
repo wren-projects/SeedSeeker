@@ -95,7 +95,10 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
         if guess > 0:
             guesses.append(guess)
 
-        next(differences)
+        try:
+            next(differences)
+        except StopIteration:
+            return None
 
         if len(guesses) < 30:
             continue
@@ -112,7 +115,6 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
             try:
                 inverse_modulus = pow((a2 - a1) % modulus, -1, modulus)
             except ValueError:
-                print(f"No inverse of {a2 - a1} mod {modulus}")
                 continue
 
             multiple = ((a3 - a2) * inverse_modulus) % modulus

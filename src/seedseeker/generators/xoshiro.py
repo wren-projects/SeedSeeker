@@ -73,7 +73,7 @@ def rot(x: int, k: int, bit_size: int = 64) -> int:
     return ((x << k) | (x >> (bit_size - k))) % 2**bit_size
 
 
-def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
+def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState | None:
     """Attempt to reverse-engineer Xoshiro256** parameters."""
     inv9 = pow(9, -1, 2**64)
     inv5 = pow(5, -1, 2**64)
@@ -81,10 +81,13 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
     def helper(x: int) -> int:
         return (rot((x * inv9) % 2**64, 64 - 7) * inv5) % 2**64
 
-    a = next(gen)
-    b = next(gen)
-    c = next(gen)
-    d = next(gen)
+    try:
+        a = next(gen)
+        b = next(gen)
+        c = next(gen)
+        d = next(gen)
+    except StopIteration:
+        return None
 
     # sX is the inital state
     s1 = helper(a)
@@ -102,6 +105,8 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
     s2 = t1 ^ s0 ^ s1
 
     og_state = (s0, s1, s2, s3)
+
+    # advance to the same position we left the input in
     gen = Xoshiro.from_state(og_state)
     _ = next(gen)
     _ = next(gen)

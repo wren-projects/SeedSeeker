@@ -112,17 +112,18 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         return FibonacciRng(r, s, m, seed, carry)
 
 
-def reverse_fibonacci(
-    generator: Iterator[int], max_param: int = 1000
-) -> FibonacciState | None:
+# upper bound on the parameter r
+MAX_LAG = 10000
+
+def reverse_fibonacci(generator: Iterator[int]) -> FibonacciState | None:
     """Reverse enginner additive Lagged Fibonacci parameters."""
-    # TODO: Handle also the seed and the current value of the carry
-    data = list(islice(generator, max_param + 100))
-    output = None
-    for r in range(max_param):
+    data = list(islice(generator, MAX_LAG + 100))
+
+    for r in range(MAX_LAG):
         for s in range(1, r):
             assumed_mod = None
             with_carry = False
+
             for i in range(r, len(data)):
                 new_assumed_mod = data[i - r] + data[i - s] - data[i]
                 if abs(new_assumed_mod) <= 1:
@@ -147,7 +148,8 @@ def reverse_fibonacci(
                     # probably not an additive lagged fibonacci sequence
                     return None
 
-                if output is None:
-                    carry = data[-1 - r] + data[-1 - s] >= assumed_mod
-                    output = r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
-    return output
+
+                carry = data[-1 - r] + data[-1 - s] >= assumed_mod
+                return r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
+
+    return None
