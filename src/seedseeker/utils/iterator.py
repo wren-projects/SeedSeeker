@@ -34,11 +34,12 @@ class BufferingIterator[T](Iterator[T]):
     The buffer is filled lazily as the values are read from the iterator.
     """
 
-    def __init__(self, iterator: Iterator[T], max_size: int = 0):
+    def __init__(self, iterator: Iterator[T], max_size: int | None = None):
         """
         Initialize the iterator.
 
-        Max size is the maximum number of values to buffer or 0 for no limit.
+        Max size is the maximum number of values to buffer or None for no limit
+        (default).
         """
         self.iterator: Iterator[T] = iterator
         self.buffer: deque[T] = deque(maxlen=max_size)
