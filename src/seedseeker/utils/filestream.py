@@ -12,7 +12,7 @@ class FileStream(Iterator[int]):
     path: str | None
 
     def __init__(self, path: str | None = None) -> None:
-        """Reads from file `path` if provided, otherwise from `stdin`."""
+        """Read from file `path` if provided, otherwise from `stdin`."""
         self.path = path
 
     def __enter__(self) -> FileStream:
