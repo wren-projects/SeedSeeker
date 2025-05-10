@@ -13,6 +13,7 @@ from seedseeker.generators import (
     Xoshiro,
     reverse_fibonacci,
     reverse_lcg,
+    reverse_mersenne,
     reverse_ran3,
     reverse_xoshiro,
 )
@@ -33,6 +34,7 @@ REVERSERS = {
     "lcg": reverse_lcg,
     "ran3": reverse_ran3,
     "xoshiro": reverse_xoshiro,
+    "mersenne": reverse_mersenne,
 }
 
 DEFAULT_SEQUENCE_LENGTH = 100
