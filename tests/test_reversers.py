@@ -51,7 +51,19 @@ def test_ran3_reverser(seed: int, values_to_consume: int) -> None:
     [
         (drop(MersenneTwister(0), 50)),
         (Lcg(2**32, 11, 0, 100)),
-        (drop(Xoshiro((1, 2, 3, 4)), 50)),
+        (
+            drop(
+                Xoshiro(
+                    (
+                        2802778124827647829,
+                        1070886523979781234,
+                        8009364533937910363,
+                        5869548737676381262,
+                    )
+                ),
+                50,
+            )
+        ),
         (islice(Ran3(100), 10)),
         (islice(FibonacciRng(2, 3, 2**32, [4, 5, 6], False), 10)),
         (iter(())),
@@ -138,9 +150,22 @@ def test_fibonacci_reverser(
     ("prng"),
     [
         (drop(MersenneTwister(0), 50)),
-        (Lcg(2**32, 11, 0, 100)),
-        (drop(Xoshiro((1, 2, 3, 4)), 50)),
+        (islice(Lcg(100, 21, 7, 11), 101)),
+        (
+            drop(
+                Xoshiro(
+                    (
+                        2802778124827647829,
+                        1070886523979781234,
+                        8009364533937910363,
+                        5869548737676381262,
+                    )
+                ),
+                50,
+            )
+        ),
         (islice(FibonacciRng(2, 3, 2**32, [4, 5, 6], False), 2)),
+        (Ran3(100)),
         (iter(())),
     ],
 )
@@ -178,7 +203,19 @@ def test_lcg_reverser(
     [
         (drop(MersenneTwister(0), 50)),
         (Ran3(100)),
-        (drop(Xoshiro((1, 2, 3, 4)), 50)),
+        (
+            drop(
+                Xoshiro(
+                    (
+                        2802778124827647829,
+                        1070886523979781234,
+                        8009364533937910363,
+                        5869548737676381262,
+                    )
+                ),
+                50,
+            )
+        ),
         (islice(Lcg(2**32, 11, 0, 100), 10)),
         (islice(FibonacciRng(2, 3, 2**32, [4, 5, 6], False), 10)),
         (iter(())),
@@ -215,6 +252,7 @@ def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
     expected = prng.state()
     assert Xoshiro.is_state_equal(found, expected)
 
+
 @pytest.mark.parametrize(
     ("prng"),
     [
@@ -222,7 +260,22 @@ def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
         (Ran3(100)),
         (FibonacciRng(2, 3, 2**32, [4, 5, 6], False)),
         (islice(Lcg(2**32, 11, 0, 100), 10)),
-        (islice(drop(Xoshiro((1, 2, 3, 4)), 50), 3)),
+        (
+            islice(
+                drop(
+                    Xoshiro(
+                        (
+                            2802778124827647829,
+                            1070886523979781234,
+                            8009364533937910363,
+                            5869548737676381262,
+                        )
+                    ),
+                    50,
+                ),
+                3,
+            )
+        ),
         (iter(())),
     ],
 )
@@ -273,7 +326,22 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
         (Ran3(100)),
         (FibonacciRng(2, 3, 2**32, [4, 5, 6], False)),
         (islice(drop(MersenneTwister(0), 50), 10)),
-        (islice(drop(Xoshiro((1, 2, 3, 4)), 50), 3)),
+        (
+            islice(
+                drop(
+                    Xoshiro(
+                        (
+                            2802778124827647829,
+                            1070886523979781234,
+                            8009364533937910363,
+                            5869548737676381262,
+                        )
+                    ),
+                    50,
+                ),
+                3,
+            )
+        ),
         (iter(())),
     ],
 )

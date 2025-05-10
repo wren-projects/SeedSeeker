@@ -8,7 +8,7 @@ from typing import override
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
-from seedseeker.utils.iterator import BufferingIterator, drop
+from seedseeker.utils.iterator import BufferingIterator, CountingIterator, drop
 
 FibonacciState = tuple[int, int, int, list[int], bool, bool]
 
@@ -114,15 +114,17 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
 # upper bound on the parameter r
 MAX_LAG = 1000
+VALUES_NEEDED = 5
 
 
 def reverse_fibonacci(generator: Iterator[int]) -> FibonacciState | None:
     """Reverse enginner additive Lagged Fibonacci parameters."""
-    buff = BufferingIterator(generator)
-    drop(buff, MAX_LAG + 100)
+    counting = CountingIterator(generator)
+    buff = BufferingIterator(counting)
+    drop(buff, MAX_LAG + VALUES_NEEDED)
     data = list(buff.buffer)
 
-    for r in range(MAX_LAG):
+    for r in range(counting.count - VALUES_NEEDED):
         for s in range(1, r):
             assumed_mod = None
             with_carry = False
