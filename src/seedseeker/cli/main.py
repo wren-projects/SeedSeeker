@@ -79,11 +79,8 @@ def main() -> None:
         "-len",
         "--length",
         metavar=("<total>"),
-        help=(
-            "Maximal length of the reversed sequence, overriden when -g is used."
-            " 0 = unlimited"
-        ),
-        default=0,
+        help=("Maximal length of the reversed sequence, overriden when -g is used."),
+        default=1024,
     )
 
     parser.add_argument(
@@ -110,8 +107,6 @@ def main() -> None:
     if args.file_in is None and args.length == 0:
         args.length = DEFAULT_SEQUENCE_LENGTH
 
-    count = None if int(args.length) == 0 else int(args.length)
-
     try:
         with (
             FileStream(args.file_in) as inp,
@@ -119,7 +114,7 @@ def main() -> None:
             if args.file_out is not None
             else nullcontext(sys.stdout) as out,
         ):
-            run_reversers(inp, out, count)
+            run_reversers(inp, out, int(args.length))
     except OSError:
         print(
             f"Error: File `{args.file_out}` does not exist or is not accessible",
@@ -150,18 +145,20 @@ def run_from_generator(args: Namespace) -> None:
         run_reversers(inp, out, int(count))
 
 
-def run_reversers(inp: Iterator[int], out: TextIO, count: int | None) -> None:
+def run_reversers(inp: Iterator[int], out: TextIO, count: int) -> None:
     """Run all reversers on given input sequence and print the results."""
     # TODO: Reversing process
 
-    iterators = tee(inp, len(REVERSERS))
+    input_iterators = tee(inp, len(REVERSERS))
+
+    limited_iterators = [islice(iterator, count) for iterator in input_iterators]
 
     results = [
-        (name, reverser(islice(iterator, count)))
-        for iterator, (name, reverser) in zip(iterators, REVERSERS.items(), strict=True)
+        (name, reverser(iterator))
+        for iterator, (name, reverser) in zip(
+            limited_iterators, REVERSERS.items(), strict=True
+        )
     ]
 
-    [print(f"{name}: {state}") for name, state in results]
-
-    out.write("Finished")
-    out.close()
+    for name, result in results:
+        print(f"{name}: {result}", file=out)
