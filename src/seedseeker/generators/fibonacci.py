@@ -88,6 +88,7 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
             and state1[3] == state2[3]
         )
 
+    @override
     @staticmethod
     def from_string(string: str) -> FibonacciRng:
         """Create generator with states from parameter string."""

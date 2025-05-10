@@ -137,7 +137,7 @@ def test_fibonacci_reverser(
     the generator.
     """
     prng = FibonacciRng(r, s, m, seed, overflow)
-    drop(prng, values_to_consume)
+    _ = drop(prng, values_to_consume)
 
     found = reverse_fibonacci(prng)
     assert found is not None
@@ -189,7 +189,7 @@ def test_lcg_reverser(
 ) -> None:
     """Test the reverser for a given LCG generator params."""
     prng = Lcg(m, a, b, seed)
-    drop(prng, values_to_consume)
+    _ = drop(prng, values_to_consume)
 
     found = reverse_lcg(prng)
     assert found is not None
@@ -244,7 +244,7 @@ def test_lcg_reverser_negative(prng: Iterator[int]) -> None:
 def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
     """Test the reverser for a given Xoshiro generator params."""
     prng = Xoshiro(seed)
-    drop(prng, values_to_consume)
+    _ = drop(prng, values_to_consume)
 
     found = reverse_xoshiro(prng)
     assert found is not None
@@ -305,7 +305,7 @@ def test_xoshiro_reverser_negative(prng: Iterator[int]) -> None:
 def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
     """Testing Mersenne Twister reverse function."""
     prng = MersenneTwister(seed)
-    drop(prng, values_to_consume)
+    _ = drop(prng, values_to_consume)
 
     found = reverse_mersenne(prng)
     assert found is not None

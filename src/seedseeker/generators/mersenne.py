@@ -104,6 +104,7 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     ) -> bool:
         raise NotImplementedError
 
+    @override
     @staticmethod
     def from_string(string: str) -> "MersenneTwister":
         """Create generator with states from parameter string."""

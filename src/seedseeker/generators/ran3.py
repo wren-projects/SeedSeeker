@@ -130,6 +130,7 @@ class Ran3(IntegerRNG[Ran3State]):
                 return False
         return True
 
+    @override
     @staticmethod
     def from_string(string: str) -> "Ran3":
         """Create generator with states from parameter string."""

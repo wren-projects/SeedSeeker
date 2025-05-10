@@ -61,6 +61,7 @@ class Lcg(IntegerRNG[LcgState]):
         """Check if two LCG states are equal."""
         return state1 == state2
 
+    @override
     @staticmethod
     def from_string(string: str) -> "Lcg":
         """Create generator with states from parameter string."""

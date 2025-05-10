@@ -9,7 +9,7 @@ XoshiroState = tuple[int, int, int, int]
 class Xoshiro(IntegerRNG[XoshiroState]):
     """Xoshiro256** PRNG."""
 
-    MODULO = 2**64
+    MODULO: int = 2**64
 
     s0: int
     s1: int
@@ -51,6 +51,7 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         """Check if two Xoshiro256** states are equal."""
         return state1 == state2
 
+    @override
     @staticmethod
     def from_string(string: str) -> "Xoshiro":
         """Create generator with states from parameter string."""

@@ -37,19 +37,17 @@ REVERSERS = {
     "mersenne": reverse_mersenne,
 }
 
-DEFAULT_SEQUENCE_LENGTH = 100
-
 
 def main() -> None:
     """CLI entry point."""
     parser = ArgumentParser(
         description=(
-            "Tool designed to infer the state of PRNG"
-            " from a sequence of generated values"
+            "Tool designed to infer the state of PRNG from a sequence of generated "
+            "values"
         ),
         epilog=(
-            "Please refer to the manpage for user guide, or the"
-            " provided documentation for implementation details"
+            "Please refer to the manpage for user guide, or the provided "
+            "documentation for implementation details"
         ),
     )
 
@@ -62,24 +60,24 @@ def main() -> None:
         metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
         help=(
             "Generates <sequence_length> numbers by generator <generator_name> with "
-            "initial state <generator_state>. Generator state format"
-            " is specified in documentation"
+            "initial state <generator_state>. Generator state format is specified in "
+            "documentation"
         ),
     )
 
     gen.add_argument(
-        "-fi", "--file-in", metavar=("<filepath>"), help="Reads numbers from file"
+        "-fi", "--file-in", metavar="<filepath>", help="Reads numbers from file"
     )
 
     parser.add_argument(
-        "-fo", "--file-out", metavar=("<filepath>"), help="Writes output to file"
+        "-fo", "--file-out", metavar="<filepath>", help="Writes output to file"
     )
 
     parser.add_argument(
         "-len",
         "--length",
-        metavar=("<total>"),
-        help=("Maximal length of the reversed sequence, overriden when -g is used."),
+        metavar="<total>",
+        help="Maximal length of the reversed sequence, overriden when -g is used.",
         default=1024,
     )
 
@@ -103,9 +101,6 @@ def main() -> None:
 
     if args.generator is not None:
         return run_from_generator(args)
-
-    if args.file_in is None and args.length == 0:
-        args.length = DEFAULT_SEQUENCE_LENGTH
 
     try:
         with (
@@ -147,8 +142,6 @@ def run_from_generator(args: Namespace) -> None:
 
 def run_reversers(inp: Iterator[int], out: TextIO, count: int) -> None:
     """Run all reversers on given input sequence and print the results."""
-    # TODO: Reversing process
-
     input_iterators = tee(inp, len(REVERSERS))
 
     limited_iterators = [islice(iterator, count) for iterator in input_iterators]

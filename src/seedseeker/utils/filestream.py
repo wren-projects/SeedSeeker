@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Iterator
-from typing import TextIO
+from typing import Any, TextIO, override
 
 
 class FileStream(Iterator[int]):
@@ -14,6 +14,7 @@ class FileStream(Iterator[int]):
     def __init__(self, path: str | None = None) -> None:
         """Read from file `path` if provided, otherwise from `stdin`."""
         self.path = path
+        self.stream = None
 
     def __enter__(self) -> FileStream:
         """Enter context and open the stream."""
@@ -31,18 +32,23 @@ class FileStream(Iterator[int]):
 
         return self
 
-    def __exit__(self, exc_type: type, exc_value: any, traceback: any) -> None:
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         """Exit context and close stream."""
+        assert self.stream is not None, "Must be used in context"
         if self.path is not None:
             self.stream.close()
 
+    @override
     def __next__(self):
         """Next item."""
+        assert self.stream is not None, "Muse be used in context"
+
         try:
             return int(self.stream.readline().strip())
         except EOFError as err:
             raise StopIteration from err
 
+    @override
     def __iter__(self) -> Iterator[int]:
         """Return the iterator."""
         return self
