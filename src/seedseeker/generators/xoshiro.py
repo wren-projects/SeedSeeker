@@ -51,6 +51,18 @@ class Xoshiro(IntegerRNG[XoshiroState]):
         """Check if two Xoshiro256** states are equal."""
         return state1 == state2
 
+    @staticmethod
+    def from_string(string: str) -> "Xoshiro":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
+
+        if len(params) < 4:
+            raise SyntaxError
+
+        s0, s1, s2, s3 = int(params[0]), int(params[1]), int(params[2]), int(params[3])
+        seed = XoshiroState([s0, s1, s2, s3])
+        return Xoshiro(seed)
+
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
     """
@@ -61,7 +73,7 @@ def rot(x: int, k: int, bit_size: int = 64) -> int:
     return ((x << k) | (x >> (bit_size - k))) % 2**bit_size
 
 
-def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
+def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState | None:
     """Attempt to reverse-engineer Xoshiro256** parameters."""
     inv9 = pow(9, -1, 2**64)
     inv5 = pow(5, -1, 2**64)
@@ -69,10 +81,13 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
     def helper(x: int) -> int:
         return (rot((x * inv9) % 2**64, 64 - 7) * inv5) % 2**64
 
-    a = next(gen)
-    b = next(gen)
-    c = next(gen)
-    d = next(gen)
+    try:
+        a = next(gen)
+        b = next(gen)
+        c = next(gen)
+        d = next(gen)
+    except StopIteration:
+        return None
 
     # sX is the inital state
     s1 = helper(a)
@@ -90,10 +105,19 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState:
     s2 = t1 ^ s0 ^ s1
 
     og_state = (s0, s1, s2, s3)
-    gen = Xoshiro.from_state(og_state)
-    _ = next(gen)
-    _ = next(gen)
-    _ = next(gen)
-    _ = next(gen)
 
-    return gen.state()
+    # advance to the same position we left the input in
+    reversed_gen = Xoshiro.from_state(og_state)
+    _ = next(reversed_gen)
+    _ = next(reversed_gen)
+    _ = next(reversed_gen)
+    _ = next(reversed_gen)
+
+    try:
+        for _ in range(100):
+            if next(gen) != next(reversed_gen):
+                return None
+    except StopIteration:
+        ...
+
+    return reversed_gen.state()

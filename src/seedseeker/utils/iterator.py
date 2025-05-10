@@ -1,5 +1,6 @@
 from collections import deque
 from collections.abc import Iterator
+from contextlib import suppress
 from typing import override
 
 
@@ -34,11 +35,12 @@ class BufferingIterator[T](Iterator[T]):
     The buffer is filled lazily as the values are read from the iterator.
     """
 
-    def __init__(self, iterator: Iterator[T], max_size: int = 0):
+    def __init__(self, iterator: Iterator[T], max_size: int | None = None):
         """
         Initialize the iterator.
 
-        Max size is the maximum number of values to buffer or 0 for no limit.
+        Max size is the maximum number of values to buffer or None for no limit
+        (default).
         """
         self.iterator: Iterator[T] = iterator
         self.buffer: deque[T] = deque(maxlen=max_size)
@@ -68,10 +70,8 @@ def drop[T](iterator: Iterator[T], n: int) -> Iterator[T]:
     Changes the iterator in-place but also returns the iterator for convenience.
     If the iterator has fewer than n values, only drop the available values.
     """
-    try:
+    with suppress(StopIteration):
         for _ in range(n):
             _ = next(iterator)
-    except StopIteration:
-        pass
 
     return iterator

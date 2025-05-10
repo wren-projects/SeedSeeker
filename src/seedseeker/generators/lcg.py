@@ -61,6 +61,17 @@ class Lcg(IntegerRNG[LcgState]):
         """Check if two LCG states are equal."""
         return state1 == state2
 
+    @staticmethod
+    def from_string(string: str) -> "Lcg":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
+
+        if len(params) < 4:
+            raise SyntaxError
+
+        m, a, c, x_0 = int(params[0]), int(params[1]), int(params[2]), int(params[3])
+        return Lcg(m, a, c, x_0)
+
 
 def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
     """Attempt to reverse-engineer LCG parameters."""
@@ -74,6 +85,9 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
     )
     drop(differences, 4)  # fill the buffer
 
+    if len(differences.buffer) < 4:
+        return None
+
     guesses: list[int] = []
 
     while True:
@@ -84,14 +98,17 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
         if guess > 0:
             guesses.append(guess)
 
-        next(differences)
-
-        if len(guesses) < 30:
-            continue
+        try:
+            next(differences)
+            if len(guesses) < 30:
+                continue
+        except StopIteration:
+            if len(guesses) < 8:
+                return None
 
         upper_modulus = gcd(*guesses)
 
-        if upper_modulus == 0:
+        if upper_modulus <= 1:
             # not an LCG sequence
             return None
 
@@ -101,7 +118,6 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
             try:
                 inverse_modulus = pow((a2 - a1) % modulus, -1, modulus)
             except ValueError:
-                print(f"No inverse of {a2 - a1} mod {modulus}")
                 continue
 
             multiple = ((a3 - a2) * inverse_modulus) % modulus

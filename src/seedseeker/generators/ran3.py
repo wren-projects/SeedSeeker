@@ -130,7 +130,29 @@ class Ran3(IntegerRNG[Ran3State]):
                 return False
         return True
 
+    @staticmethod
+    def from_string(string: str) -> "Ran3":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
 
-def reverse_ran3(ran3: Iterator[int]) -> Ran3State:
+        if len(params) < 1:
+            raise SyntaxError
+
+        seed = int(params[0])
+        return Ran3(seed)
+
+
+def reverse_ran3(ran3: Iterator[int]) -> Ran3State | None:
     """Reverse a ran3 parameters."""
-    return [0] + [next(ran3) for _ in range(55)], 55, 21
+    try:
+        attempt = [0] + [next(ran3) for _ in range(55)], 55, 21
+    except StopIteration:
+        return None
+    test = Ran3.from_state(attempt)
+    try:
+        for _ in range(100):
+            if next(test) != next(ran3):
+                return None
+    except StopIteration:
+        pass
+    return test.state()

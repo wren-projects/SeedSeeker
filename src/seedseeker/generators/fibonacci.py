@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Iterator
-from itertools import islice
+from sys import stderr
 from typing import override
 
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
+from seedseeker.utils.iterator import BufferingIterator, CountingIterator, drop
 
 FibonacciState = tuple[int, int, int, list[int], bool, bool]
 
@@ -87,18 +88,47 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
             and state1[3] == state2[3]
         )
 
+    @staticmethod
+    def from_string(string: str) -> FibonacciRng:
+        """Create generator with states from parameter string."""
+        params = string.split(";")
 
-def reverse_fibonacci(
-    generator: Iterator[int], max_param: int = 1000
-) -> FibonacciState | None:
+        if len(params) < 4:
+            raise SyntaxError
+
+        r, s, m = int(params[0]), int(params[1]), int(params[2])
+        seed = [int(x) for x in params[3].split(",")]
+        carry = True
+
+        if len(params) >= 5:
+            if params[4].lower() == "false":
+                carry = False
+
+            elif params[4].lower() != "true":
+                stderr.write(
+                    f"Warning: Invalid carry specification {params[4]}, setting True"
+                )
+
+        return FibonacciRng(r, s, m, seed, carry)
+
+
+# upper bound on the parameter r
+MAX_LAG = 1000
+VALUES_NEEDED = 5
+
+
+def reverse_fibonacci(generator: Iterator[int]) -> FibonacciState | None:
     """Reverse enginner additive Lagged Fibonacci parameters."""
-    # TODO: Handle also the seed and the current value of the carry
-    data = list(islice(generator, max_param + 100))
-    output = None
-    for r in range(max_param):
+    counting = CountingIterator(generator)
+    buff = BufferingIterator(counting)
+    drop(buff, MAX_LAG + VALUES_NEEDED)
+    data = list(buff.buffer)
+
+    for r in range(counting.count - VALUES_NEEDED):
         for s in range(1, r):
             assumed_mod = None
             with_carry = False
+
             for i in range(r, len(data)):
                 new_assumed_mod = data[i - r] + data[i - s] - data[i]
                 if abs(new_assumed_mod) <= 1:
@@ -123,7 +153,7 @@ def reverse_fibonacci(
                     # probably not an additive lagged fibonacci sequence
                     return None
 
-                if output is None:
-                    carry = data[-1 - r] + data[-1 - s] >= assumed_mod
-                    output = r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
-    return output
+                carry = data[-1 - r] + data[-1 - s] >= assumed_mod
+                return r, s, assumed_mod, data[-max(r, s) :], with_carry, carry
+
+    return None

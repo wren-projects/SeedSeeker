@@ -5,6 +5,7 @@ from typing import override
 from randcrack import RandCrack
 
 from seedseeker.defs import IntegerRNG
+from seedseeker.utils.iterator import CountingIterator
 
 MersenneTwisterState = tuple[list[int], int]
 RandCrackerState = tuple[list[int], int]
@@ -103,12 +104,31 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     ) -> bool:
         raise NotImplementedError
 
+    @staticmethod
+    def from_string(string: str) -> "MersenneTwister":
+        """Create generator with states from parameter string."""
+        params = string.split(";")
 
-def reverse_mersenne(mersenne: Iterator[int]) -> MersenneTwister | None:
+        if len(params) < 1:
+            raise SyntaxError
+
+        seed = int(params[0])
+        return MersenneTwister(seed)
+
+
+def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackerState | None:
     """Find state using RandCrack algorithm from an iterator."""
     predictor = RandCrack()
+    counting = CountingIterator(mersenne)
 
-    for value in islice(mersenne, 624):
+    for value in islice(counting, 624):
         predictor.submit(value)
 
-    return MersenneTwister.from_state((predictor.mt, predictor.counter))
+    if counting.count < 624:
+        return None
+
+    for value in islice(counting, 100):
+        if value != predictor.predict_getrandbits(32):
+            return None
+
+    return predictor.mt, predictor.counter
