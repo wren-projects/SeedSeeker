@@ -1,9 +1,20 @@
 from collections.abc import Iterator
-from typing import override
+from typing import NamedTuple, override
 
 from seedseeker.defs import IntegerRNG
 
-XoshiroState = tuple[int, int, int, int]
+
+class XoshiroState(NamedTuple):
+    """State of a Xoshiro256** PRNG."""
+
+    s0: int
+    s1: int
+    s2: int
+    s3: int
+
+    def __str__(self) -> str:
+        """Print state as string."""
+        return f"{self.s0};{self.s1};{self.s2};{self.s3}"
 
 
 class Xoshiro(IntegerRNG[XoshiroState]):
@@ -37,7 +48,7 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     @override
     def state(self) -> XoshiroState:
         """Return the inner state."""
-        return self.s0, self.s1, self.s2, self.s3
+        return XoshiroState(self.s0, self.s1, self.s2, self.s3)
 
     @override
     @staticmethod
@@ -55,14 +66,16 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     @staticmethod
     def from_string(string: str) -> "Xoshiro":
         """Create generator with states from parameter string."""
-        params = string.split(";")
+        s0, s1, s2, s3 = map(int, string.split(";"))
+        return Xoshiro(XoshiroState(s0, s1, s2, s3))
 
-        if len(params) < 4:
-            raise SyntaxError
+    @override
+    @staticmethod
+    def state_from_string(string: str) -> XoshiroState:
+        """Create state from parameter string."""
+        s0, s1, s2, s3 = map(int, string.split(";"))
 
-        s0, s1, s2, s3 = int(params[0]), int(params[1]), int(params[2]), int(params[3])
-        seed = XoshiroState([s0, s1, s2, s3])
-        return Xoshiro(seed)
+        return XoshiroState(s0, s1, s2, s3)
 
 
 def rot(x: int, k: int, bit_size: int = 64) -> int:
@@ -105,10 +118,10 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState | None:
     s0 = t0 ^ s1 ^ s3
     s2 = t1 ^ s0 ^ s1
 
-    og_state = (s0, s1, s2, s3)
+    state = XoshiroState(s0, s1, s2, s3)
 
     # advance to the same position we left the input in
-    reversed_gen = Xoshiro.from_state(og_state)
+    reversed_gen = Xoshiro.from_state(state)
     _ = next(reversed_gen)
     _ = next(reversed_gen)
     _ = next(reversed_gen)

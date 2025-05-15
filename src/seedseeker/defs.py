@@ -31,3 +31,8 @@ class IntegerRNG[StateT](Protocol):
     def from_string(string: str) -> Self:
         """Create generator with states from parameter string."""
         raise NotImplementedError
+
+    @staticmethod
+    def state_from_string(string: str) -> StateT:
+        """Create state from parameter string."""
+        raise NotImplementedError

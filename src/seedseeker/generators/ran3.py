@@ -1,10 +1,21 @@
 import itertools
 from collections.abc import Iterator
-from typing import override
+from contextlib import suppress
+from typing import NamedTuple, override
 
 from seedseeker.defs import IntegerRNG
 
-Ran3State = tuple[list[int], int, int]
+
+class Ran3State(NamedTuple):
+    """State of Ran3 PRNG."""
+
+    array: list[int]
+    pointer_a: int
+    pointer_b: int
+
+    def __str__(self) -> str:
+        """Print Ran3 state as string."""
+        return f"{self.array};{self.pointer_a};{self.pointer_b}"
 
 
 class Ran3(IntegerRNG[Ran3State]):
@@ -97,7 +108,7 @@ class Ran3(IntegerRNG[Ran3State]):
     @override
     def state(self) -> Ran3State:
         """Return the inner state."""
-        return self.seed_array, self.pointer_a, self.pointer_b
+        return Ran3State(self.seed_array, self.pointer_a, self.pointer_b)
 
     @override
     @staticmethod
@@ -111,23 +122,27 @@ class Ran3(IntegerRNG[Ran3State]):
     @staticmethod
     def is_state_equal(state1: Ran3State, state2: Ran3State) -> bool:
         """Check if two Ran3 PRNG states are equal."""
+        array1, pointer_a1, pointer_b1 = state1
+        array2, pointer_a2, pointer_b2 = state2
+
         # This is more complex than a simple
         # equality check because the internal state is a circular buffer.
-        if ((state1[2] - state2[2]) - (state1[1] - state2[1])) % 55 != 0:
+        if ((pointer_b1 - pointer_b2) - (pointer_a1 - pointer_a2)) % 55 != 0:
             return False
 
-        index1 = state1[1]
-        index2 = state2[1]
-
         for _ in range(55):
-            index1 += 1
-            index2 += 1
-            if index1 >= 56:
-                index1 = 1
-            if index2 >= 56:
-                index2 = 1
-            if state1[0][index1] != state2[0][index2]:
+            pointer_a1 += 1
+            pointer_a2 += 1
+
+            if pointer_a1 >= 56:
+                pointer_a1 = 1
+
+            if pointer_a2 >= 56:
+                pointer_a2 = 1
+
+            if array1[pointer_a1] != array2[pointer_a2]:
                 return False
+
         return True
 
     @override
@@ -142,18 +157,31 @@ class Ran3(IntegerRNG[Ran3State]):
         seed = int(params[0])
         return Ran3(seed)
 
+    @override
+    @staticmethod
+    def state_from_string(string: str) -> Ran3State:
+        """Create state from parameter string."""
+        array, pointer_a, pointer_b = string.split(";")
+
+        return Ran3State(
+            list(map(int, array.strip("[]").split(","))),
+            int(pointer_a),
+            int(pointer_b),
+        )
+
 
 def reverse_ran3(ran3: Iterator[int]) -> Ran3State | None:
     """Reverse a ran3 parameters."""
     try:
-        attempt = [0] + [next(ran3) for _ in range(55)], 55, 21
+        state = Ran3State([0] + [next(ran3) for _ in range(55)], 55, 21)
     except StopIteration:
         return None
-    test = Ran3.from_state(attempt)
-    try:
+
+    test = Ran3.from_state(state)
+
+    with suppress(StopIteration):
         for _ in range(100):
             if next(test) != next(ran3):
                 return None
-    except StopIteration:
-        pass
+
     return test.state()

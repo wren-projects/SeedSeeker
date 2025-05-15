@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from itertools import islice, pairwise
 from math import gcd
-from typing import override
+from typing import NamedTuple, override
 
 from mod import Mod
 
@@ -9,7 +9,17 @@ from seedseeker.defs import IntegerRNG
 from seedseeker.utils.iterator import BufferingIterator, drop
 from seedseeker.utils.primes import divisors
 
-LcgState = tuple[int, int, Mod]
+
+class LcgState(NamedTuple):
+    """State of a LCG."""
+
+    a: int
+    c: int
+    x_n: Mod
+
+    def __str__(self) -> str:
+        """Print LCG state as string."""
+        return f"{self.x_n.modulus};{self.a};{self.c};{int(self.x_n)}"
 
 
 class Lcg(IntegerRNG[LcgState]):
@@ -45,7 +55,7 @@ class Lcg(IntegerRNG[LcgState]):
     @override
     def state(self) -> LcgState:
         """Return the inner state."""
-        return self.a, self.c, self.x_n
+        return LcgState(self.a, self.c, self.x_n)
 
     @override
     @staticmethod
@@ -65,20 +75,19 @@ class Lcg(IntegerRNG[LcgState]):
     @staticmethod
     def from_string(string: str) -> "Lcg":
         """Create generator with states from parameter string."""
-        params = string.split(";")
-
-        if len(params) < 4:
-            raise SyntaxError
-
-        m, a, c, x_0 = int(params[0]), int(params[1]), int(params[2]), int(params[3])
+        m, a, c, x_0 = map(int, string.split(";"))
         return Lcg(m, a, c, x_0)
+
+    @override
+    @staticmethod
+    def state_from_string(string: str) -> LcgState:
+        """Create state from parameter string."""
+        m, a, c, x_0 = map(int, string.split(";"))
+        return LcgState(a, c, Mod(x_0, m))
 
 
 def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
     """Attempt to reverse-engineer LCG parameters."""
-    # TODO: add more bounds and precondition checks, to prevent both infinite
-    # loops and false positive results
-
     buffered_lcg = BufferingIterator(lcg, max_size=3)
 
     differences = BufferingIterator(

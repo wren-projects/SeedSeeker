@@ -1,14 +1,39 @@
 from collections.abc import Iterator
 from itertools import islice
-from typing import override
+from typing import NamedTuple, override
 
 from randcrack import RandCrack
 
 from seedseeker.defs import IntegerRNG
 from seedseeker.utils.iterator import CountingIterator
 
-MersenneTwisterState = tuple[list[int], int]
-RandCrackerState = tuple[list[int], int]
+
+class MersenneTwisterState(NamedTuple):
+    """State of Mersenne Twister PRNG."""
+
+    array: list[int]
+    pointer: int
+
+    def __str__(self) -> str:
+        """Print Mersenne Twister state as string."""
+        return f"{self.array};{self.pointer}"
+
+
+class RandCrackState(NamedTuple):
+    """State of RandCrack reverser."""
+
+    mt: list[list[int]]
+    counter: int
+
+    def __str__(self) -> str:
+        """Print RandCrack state as string."""
+
+        def bits_to_int(bits: list[int]) -> int:
+            return int("".join(map(str, bits)), 2)
+
+        hex_encoded = ",".join(f"{bits_to_int(i32):X}" for i32 in self.mt)
+
+        return f"{hex_encoded};{self.counter}"
 
 
 class MersenneTwister(IntegerRNG[MersenneTwisterState]):
@@ -80,16 +105,16 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         return self.rand_crack.predict_getrandbits(32)
 
     @override
-    def state(self) -> MersenneTwisterState | RandCrackerState:
+    def state(self) -> MersenneTwisterState | RandCrackState:
         """Return the inner state."""
         if self.rand_crack is None:
-            return self.state_array.copy(), self.state_index
+            return MersenneTwisterState(self.state_array, self.state_index)
 
-        return (self.rand_crack.mt, self.rand_crack.counter)
+        return RandCrackState(self.rand_crack.mt, self.rand_crack.counter)
 
     @override
     @staticmethod
-    def from_state(state: RandCrackerState) -> "MersenneTwister":
+    def from_state(state: RandCrackState) -> "MersenneTwister":
         """Set the inner state."""
         rng = MersenneTwister(0)
         rng.rand_crack = RandCrack()
@@ -116,8 +141,22 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
         seed = int(params[0])
         return MersenneTwister(seed)
 
+    @override
+    @staticmethod
+    def state_from_string(string: str) -> RandCrackState:
+        """Create state from parameter string."""
+        array, counter = string.split(";")
 
-def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackerState | None:
+        def int_to_bits(i: int) -> list[int]:
+            return [(i >> b) & 1 for b in reversed(range(32))]
+
+        return RandCrackState(
+            [int_to_bits(int(i32, 16)) for i32 in array.split(",")],
+            int(counter),
+        )
+
+
+def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackState | None:
     """Find state using RandCrack algorithm from an iterator."""
     predictor = RandCrack()
     counting = CountingIterator(mersenne)
@@ -132,4 +171,4 @@ def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackerState | None:
         if value != predictor.predict_getrandbits(32):
             return None
 
-    return predictor.mt, predictor.counter
+    return RandCrackState(predictor.mt, predictor.counter)

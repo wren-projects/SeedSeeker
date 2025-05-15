@@ -138,6 +138,25 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
 
         return FibonacciRng(r, s, m, seed, carry)
 
+    @override
+    @staticmethod
+    def state_from_string(string: str) -> FibonacciState:
+        # f"{self.r};{self.s};{self.m};{self.seed};{self.carry}"
+        r, s, m, seed, carry = string.split(";")
+
+        r, s, m = map(int, [r, s, m])
+        seed = list(map(int, seed.strip("[]").split(",")))
+
+        match carry:
+            case "False":
+                carry = False
+            case "True":
+                carry = True
+            case _:
+                carry = None
+
+        return FibonacciState(r, s, m, seed, carry)
+
 
 # upper bound on the parameter r
 MAX_LAG = 1000
