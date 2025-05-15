@@ -141,4 +141,4 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
             if not 0 <= increment < modulus:
                 continue
 
-            return multiple, increment, Mod(a3, modulus)
+            return LcgState(multiple, increment, Mod(a3, modulus))
