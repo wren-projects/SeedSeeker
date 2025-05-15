@@ -19,6 +19,7 @@ from seedseeker.generators import (
 from seedseeker.generators.xoshiro import XoshiroState
 from seedseeker.utils.iterator import drop
 
+GENERATOR_LIMIT = 1000
 
 @pytest.mark.parametrize(
     ("seed", "values_to_consume"),
@@ -39,8 +40,8 @@ def test_ran3_reverser(seed: int, values_to_consume: int) -> None:
     the generator.
     """
     prng = Ran3(seed)
-    [next(prng) for _ in range(values_to_consume)]
-    found = reverse_ran3(prng)
+    _ = drop(prng, values_to_consume)
+    found = reverse_ran3(islice(prng, GENERATOR_LIMIT))
     assert found is not None
     expected = prng.state()
     assert Ran3.is_state_equal(found, expected)
@@ -140,7 +141,7 @@ def test_fibonacci_reverser(
     prng = FibonacciRng(r, s, m, seed, overflow)
     _ = drop(prng, values_to_consume)
 
-    found = reverse_fibonacci(prng)
+    found = reverse_fibonacci(islice(prng, GENERATOR_LIMIT))
     assert found is not None
 
     expected = prng.state()
@@ -192,7 +193,7 @@ def test_lcg_reverser(
     prng = Lcg(m, a, b, seed)
     _ = drop(prng, values_to_consume)
 
-    found = reverse_lcg(prng)
+    found = reverse_lcg(islice(prng, GENERATOR_LIMIT))
     assert found is not None
 
     expected = prng.state()
@@ -247,7 +248,7 @@ def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
     prng = Xoshiro(seed)
     _ = drop(prng, values_to_consume)
 
-    found = reverse_xoshiro(prng)
+    found = reverse_xoshiro(islice(prng, GENERATOR_LIMIT))
     assert found is not None
 
     expected = prng.state()
@@ -308,7 +309,7 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
     prng = MersenneTwister(seed)
     _ = drop(prng, values_to_consume)
 
-    found = reverse_mersenne(prng)
+    found = reverse_mersenne(islice(prng, GENERATOR_LIMIT))
     assert found is not None
 
     randcrack = MersenneTwister.from_state(found)
