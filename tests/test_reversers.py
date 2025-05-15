@@ -93,7 +93,8 @@ def create_random_fibonaci_test() -> tuple[int, int, int, list[int], int, bool]:
     ("r", "s", "m", "seed", "values_to_consume", "overflow"),
     [
         (2, 3, 2**32, [4, 5, 6], 40, True),
-        (2, 3, 2**32, [4, 5, 6], 40, False),
+        (2, 3, 2**32, 0, 40, False),
+        (2, 3, 2**32, 10000, 40, False),
         (
             20,
             11,
