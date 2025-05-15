@@ -10,6 +10,7 @@ from seedseeker.generators import (
     Xoshiro,
     XoshiroState,
 )
+from seedseeker.generators.mersenne import reverse_mersenne
 
 
 @pytest.mark.parametrize(
@@ -169,6 +170,17 @@ def test_ran3(seed: int, expected: list[int]) -> None:
     assert list(islice(Ran3(seed), len(expected))) == expected
 
 
+def test_ran3_string() -> None:
+    """Test ran3 parameter string."""
+    generator = Ran3(1)
+
+    state = generator.state()
+    assert Ran3.from_string("1").state() == state
+
+    from_string = generator.state_from_string(str(state))
+    assert Ran3.is_state_equal(state, from_string)
+
+
 @pytest.mark.parametrize(
     ("m", "a", "c", "x_0", "expected"),
     [
@@ -225,6 +237,17 @@ def test_ran3(seed: int, expected: list[int]) -> None:
 def test_lcg(m: int, a: int, c: int, x_0: int, expected: list[int]) -> None:
     """Test Linear Congruential Generator (LCG)."""
     assert list(islice(Lcg(m, a, c, x_0), len(expected))) == expected
+
+
+def test_lcg_string() -> None:
+    """Test lcg parameter string."""
+    generator = Lcg(4294967296, 1664525, 1013904223, 1)
+
+    state = generator.state()
+    assert Lcg.from_string("4294967296;1664525;1013904223;1").state() == state
+
+    from_string = generator.state_from_string(str(state))
+    assert Lcg.is_state_equal(state, from_string)
 
 
 @pytest.mark.parametrize(
@@ -298,6 +321,20 @@ def test_lcg(m: int, a: int, c: int, x_0: int, expected: list[int]) -> None:
 def test_mersenne(seed: int, expected: list[int]) -> None:
     """Test the Mersenne Twister generator."""
     assert list(islice(MersenneTwister(seed), len(expected))) == expected
+
+
+def test_mersenne_string() -> None:
+    """Test mersenne parameter string."""
+    generator = MersenneTwister(0)
+
+    state = generator.state()
+    assert MersenneTwister.from_string("0").state() == state
+
+    randcrack = reverse_mersenne(generator)
+    assert randcrack is not None
+
+    from_string = generator.state_from_string(str(randcrack))
+    assert randcrack == from_string
 
 
 @pytest.mark.parametrize(
@@ -376,6 +413,17 @@ def test_mersenne(seed: int, expected: list[int]) -> None:
 def test_xoshiro(seed: XoshiroState, expected: list[int]) -> None:
     """Test the Xoshiro generator."""
     assert list(islice(Xoshiro(seed), len(expected))) == expected
+
+
+def test_xoshiro_string() -> None:
+    """Test the Xoshiro generator from string."""
+    generator = Xoshiro(XoshiroState(1, 2, 3, 4))
+
+    state = generator.state()
+    assert Xoshiro.from_string("1;2;3;4").state() == state
+
+    from_string = generator.state_from_string(str(state))
+    assert state == from_string
 
 
 @pytest.mark.parametrize(
@@ -513,3 +561,14 @@ def test_fibonacci(
     assert (
         list(islice(FibonacciRng(r, s, m, seed, with_carry), len(expected))) == expected
     )
+
+
+def test_fibonacci_from_string() -> None:
+    """Test the additive Lagged Fibonacci generator from string."""
+    rng = FibonacciRng(2, 5, 4294967296, 20, False)
+
+    state = rng.state()
+    assert FibonacciRng.from_string("2;5;4294967296;20;false").state() == state
+
+    from_string = FibonacciRng.state_from_string(str(state))
+    assert from_string == state
