@@ -44,9 +44,12 @@ class FileStream(Iterator[int]):
         assert self.stream is not None, "Muse be used in context"
 
         try:
-            return int(self.stream.readline().strip())
-        except EOFError as err:
-            raise StopIteration from err
+            line = self.stream.readline().strip()
+            if not line:
+                raise StopIteration
+            return int(line)
+        except EOFError:
+            raise StopIteration from None
 
     @override
     def __iter__(self) -> Iterator[int]:
