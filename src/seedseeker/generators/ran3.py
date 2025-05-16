@@ -15,7 +15,8 @@ class Ran3State(NamedTuple):
 
     def __str__(self) -> str:
         """Print Ran3 state as string."""
-        return f"{self.array};{self.pointer_a};{self.pointer_b}"
+        array = ",".join(map(str, self.array))
+        return f"{array};{self.pointer_a};{self.pointer_b}"
 
 
 class Ran3(IntegerRNG[Ran3State]):
@@ -149,13 +150,7 @@ class Ran3(IntegerRNG[Ran3State]):
     @staticmethod
     def from_string(string: str) -> "Ran3":
         """Create generator with states from parameter string."""
-        params = string.split(";")
-
-        if len(params) < 1:
-            raise SyntaxError
-
-        seed = int(params[0])
-        return Ran3(seed)
+        return Ran3(int(string))
 
     @override
     @staticmethod
@@ -164,7 +159,7 @@ class Ran3(IntegerRNG[Ran3State]):
         array, pointer_a, pointer_b = string.split(";")
 
         return Ran3State(
-            list(map(int, array.strip("[]").split(","))),
+            list(map(int, array.split(","))),
             int(pointer_a),
             int(pointer_b),
         )

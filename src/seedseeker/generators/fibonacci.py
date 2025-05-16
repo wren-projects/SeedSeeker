@@ -24,7 +24,8 @@ class FibonacciState(NamedTuple):
 
     def __str__(self) -> str:
         """Print state as string."""
-        return f"{self.r};{self.s};{self.m};{self.seed};{self.carry}"
+        seed = ",".join(map(str, self.seed))
+        return f"{self.r};{self.s};{self.m};{seed};{self.carry}"
 
 
 class FibonacciRng(IntegerRNG[FibonacciState]):
@@ -141,11 +142,10 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
     @override
     @staticmethod
     def state_from_string(string: str) -> FibonacciState:
-        # f"{self.r};{self.s};{self.m};{self.seed};{self.carry}"
         r, s, m, seed, carry = string.split(";")
 
         r, s, m = map(int, [r, s, m])
-        seed = list(map(int, seed.strip("[]").split(",")))
+        seed = list(map(int, seed.split(",")))
 
         match carry:
             case "False":
