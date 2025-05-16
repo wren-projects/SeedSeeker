@@ -5,8 +5,8 @@ from collections.abc import Iterator
 from typing import Any, TextIO, override
 
 
-class FileStream(Iterator[int]):
-    """Streams numbers from a file or stdin."""
+class FileStream(Iterator[str]):
+    """Streams lines from a file or stdin."""
 
     stream: TextIO | None
     path: str | None
@@ -39,19 +39,21 @@ class FileStream(Iterator[int]):
             self.stream.close()
 
     @override
-    def __next__(self):
+    def __next__(self) -> str:
         """Next item."""
         assert self.stream is not None, "Muse be used in context"
 
         try:
             line = self.stream.readline().strip()
-            if not line:
-                raise StopIteration
-            return int(line)
         except EOFError:
             raise StopIteration from None
 
+        if not line:
+            raise StopIteration
+
+        return line
+
     @override
-    def __iter__(self) -> Iterator[int]:
+    def __iter__(self) -> Iterator[str]:
         """Return the iterator."""
         return self
