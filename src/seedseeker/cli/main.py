@@ -1,8 +1,7 @@
 import sys
-from argparse import ArgumentParser, Namespace
-from collections.abc import Iterator
+from argparse import Action, ArgumentParser, Namespace
 from contextlib import nullcontext
-from itertools import islice, tee
+from itertools import islice
 from typing import TextIO
 
 from seedseeker.generators import (
@@ -38,6 +37,25 @@ REVERSERS = {
 }
 
 
+class GeneratorAction(Action):
+    """Custom action to parse generator arguments."""
+
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: list[str],
+        option_string: str | None = None,
+    ):
+        """Parse generator arguments."""
+        if len(values) != 3:
+            parser.error(
+                f"{option_string} requires exactly 3 arguments,"
+                f" but {len(values)} were given."
+            )
+        setattr(namespace, self.dest, values)
+
+
 def main() -> None:
     """CLI entry point."""
     parser = ArgumentParser(
@@ -51,34 +69,54 @@ def main() -> None:
         ),
     )
 
-    gen = parser.add_mutually_exclusive_group()
+    command_group = parser.add_mutually_exclusive_group()
 
-    gen.add_argument(
+    command_group.add_argument(
         "-g",
         "--generator",
-        nargs=3,
-        metavar=("<generator_name>", "<generator_state>", "<sequence_length>"),
+        nargs="*",
+        metavar=("<name>", "<arguments>", "<count>"),
+        # action=GeneratorAction,
         help=(
-            "Generates <sequence_length> numbers by generator <generator_name> with "
-            "initial state <generator_state>. Generator state format is specified in "
-            "documentation"
+            "Generate a sequence of numbers from a generator with given arguments. "
+            "Either takes the values directly, or if none are supplied, reads them "
+            "from stdin or file (see -i)"
         ),
     )
 
-    gen.add_argument(
-        "-fi", "--file-in", metavar="<filepath>", help="Reads numbers from file"
+    command_group.add_argument(
+        "-p",
+        "--predict",
+        metavar="<count>",
+        help="Number of values to predict. Reads saved states from input.",
+    )
+
+    command_group.add_argument(
+        "-r",
+        "--reverse",
+        action="store_true",
+        help=(
+            "Reverses the given sequence of numbers and prints all matching generator"
+            " states"
+        ),
     )
 
     parser.add_argument(
-        "-fo", "--file-out", metavar="<filepath>", help="Writes output to file"
+        "-i", "--input", metavar="<file>", help="Reads numbers from file"
+    )
+
+    parser.add_argument(
+        "-o", "--output", metavar="<file>", help="Writes output to file"
     )
 
     parser.add_argument(
         "-len",
         "--length",
         metavar="<total>",
-        help="Maximal length of the reversed sequence, overriden when -g is used.",
-        default=1024,
+        help=(
+            "Length of the sequence to reverse or predict. Defaults to 1024 or 16"
+            " respectively"
+        ),
     )
 
     parser.add_argument(
@@ -89,69 +127,104 @@ def main() -> None:
         version=f"SeedSeeker {VERSION}",
     )
 
-    # TODO: Determine if this will be a thing
-    # parser.add_argument("-gl", "--generator-list",
-    #                     help=("Displays a list of all available generators"
-    #                     " and their state parameters"),
-    #                     action="version",
-    #                     version=f"{'\n'.join([f"{name}: {generator}" for
-    #                       name, generator in GENERATORS.items()])}")
-
     args = parser.parse_args()
-
-    if args.generator is not None:
-        return run_from_generator(args)
 
     try:
         with (
-            FileStream(args.file_in) as inp,
-            open(args.file_out, "w")
-            if args.file_out is not None
+            FileStream(args.input) as inp,
+            open(args.output, "w")
+            if args.output is not None
             else nullcontext(sys.stdout) as out,
         ):
-            run_reversers(inp, out, int(args.length))
+            run_with_io(inp, out, args)
     except OSError:
         print(
-            f"Error: File `{args.file_out}` does not exist or is not accessible",
+            f"Error: File `{args.output}` does not exist or is not accessible",
             file=sys.stderr,
         )
         sys.exit(2)
 
 
-def run_from_generator(args: Namespace) -> None:
-    """Run all reversers on sequence from given generator."""
-    generator, parameters, count = args.generator
-
-    if generator not in GENERATORS:
-        print(f"Error: Unknown generator {generator}", file=sys.stderr)
+def run_with_io(inp: FileStream, out: TextIO, args: Namespace) -> None:
+    """Run the program with given IO."""
+    if args.generator is not None:
+        generate_numbers(inp, out, args)
+    elif args.reverse:
+        reverse_sequence(inp, out, args.length)
+    elif args.predict is not None:
+        predict_numbers(inp, out, args.length)
+    else:
+        print("Error: No command given", file=sys.stderr)
         sys.exit(1)
 
+
+def int_or_default(value: any, default: int) -> int:
+    """Convert value to int if possible, otherwise return default."""
     try:
-        inp = GENERATORS[generator].from_string(parameters)
-    except SyntaxError:
-        print(f"Error in syntax of generator parameters {parameters}", file=sys.stderr)
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
+def reverse_sequence(inp: FileStream, out: TextIO, limit: str | None) -> None:
+    """Reverse the sequence and print all matching generator states."""
+    sequence = list(islice(map(int, inp), int_or_default(limit, 1024)))
+
+    found = False
+    for name, reverser in REVERSERS.items():
+        if (state := reverser(iter(sequence))) is not None:
+            print(f"{name} {state}", file=out)
+            found = True
+
+    if not found:
+        print("Error: No matching generator state found", file=sys.stderr)
         sys.exit(1)
 
-    with (
-        open(args.file_out, "w")
-        if args.file_out is not None
-        else nullcontext(sys.stdout) as out
-    ):
-        run_reversers(inp, out, int(count))
 
+def generate_numbers(inp: FileStream, out: TextIO, args: Namespace) -> None:
+    """Generate numbers from given generator args."""
+    if args.generator:
+        name, parameters, count = args.generator
 
-def run_reversers(inp: Iterator[int], out: TextIO, count: int) -> None:
-    """Run all reversers on given input sequence and print the results."""
-    input_iterators = tee(inp, len(REVERSERS))
+        if name not in GENERATORS:
+            print(f"Error: Unknown generator {name}", file=sys.stderr)
+            sys.exit(1)
 
-    limited_iterators = [islice(iterator, count) for iterator in input_iterators]
-
-    results = [
-        (name, reverser(iterator))
-        for iterator, (name, reverser) in zip(
-            limited_iterators, REVERSERS.items(), strict=True
+        print(
+            *islice(GENERATORS[name].from_string(parameters), int(count)),
+            file=out,
+            sep="\n",
         )
-    ]
 
-    for name, result in results:
-        print(f"{name}: {result}", file=out)
+        return
+
+    for line in inp:
+        name, parameters, count = line.split()
+
+        if name not in GENERATORS:
+            print(f"Error: Unknown generator {name}", file=sys.stderr)
+            sys.exit(1)
+
+        print(
+            *islice(GENERATORS[name].from_string(parameters), int(count)),
+            file=out,
+            sep=";",
+        )
+
+
+def predict_numbers(inp: FileStream, out: TextIO, count: int | None) -> None:
+    """Predict numbers from saved states."""
+    limit = int_or_default(count, 16)
+
+    for line in inp:
+        name, args = line.split()
+
+        if name not in GENERATORS:
+            print(f"Error: Unknown reverser {name}", file=sys.stderr)
+            sys.exit(1)
+
+        generator_class = GENERATORS[name]
+
+        state = generator_class.state_from_string(args)
+
+        print(*islice(generator_class.from_state(state), limit), file=out, sep=";")
