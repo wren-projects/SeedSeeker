@@ -40,3 +40,6 @@ jobs:
         if: always()
         continue-on-error: true
         run: uv run basedpyright seedseeker
+      - name: Test code
+        if: always()
+        run: uv run pytest
