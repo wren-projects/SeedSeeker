@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from typing import NamedTuple, override
 
 from seedseeker.defs import IntegerRNG
+from seedseeker.utils.iterator import synchronize
 
 
 class XoshiroState(NamedTuple):
@@ -127,11 +128,4 @@ def reverse_xoshiro(gen: Iterator[int]) -> XoshiroState | None:
     _ = next(reversed_gen)
     _ = next(reversed_gen)
 
-    try:
-        for _ in range(100):
-            if next(gen) != next(reversed_gen):
-                return None
-    except StopIteration:
-        ...
-
-    return reversed_gen.state()
+    return synchronize(gen, reversed_gen)

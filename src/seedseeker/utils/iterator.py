@@ -3,6 +3,8 @@ from collections.abc import Iterator
 from contextlib import suppress
 from typing import override
 
+from seedseeker.defs import IntegerRNG
+
 
 class CountingIterator[T](Iterator[T]):
     """An iterator that counts the number of values yielded."""
@@ -75,3 +77,12 @@ def drop[T](iterator: Iterator[T], n: int) -> Iterator[T]:
             _ = next(iterator)
 
     return iterator
+
+
+def synchronize[T, U](sequence: Iterator[T], rng: IntegerRNG[U]) -> U | None:
+    """Iterate the RNG until the end of the source sequence, checking if they match."""
+    for value, reversed_value in zip(sequence, rng, strict=False):
+        if value != reversed_value:
+            return None
+
+    return rng.state()

@@ -1,9 +1,9 @@
 import itertools
 from collections.abc import Iterator
-from contextlib import suppress
 from typing import NamedTuple, override
 
 from seedseeker.defs import IntegerRNG
+from seedseeker.utils.iterator import synchronize
 
 
 class Ran3State(NamedTuple):
@@ -170,18 +170,11 @@ class Ran3(IntegerRNG[Ran3State]):
         )
 
 
-def reverse_ran3(ran3: Iterator[int]) -> Ran3State | None:
+def reverse_ran3(gen: Iterator[int]) -> Ran3State | None:
     """Reverse a ran3 parameters."""
     try:
-        state = Ran3State([0] + [next(ran3) for _ in range(55)], 55, 21)
+        state = Ran3State([0] + [next(gen) for _ in range(55)], 55, 21)
     except StopIteration:
         return None
 
-    test = Ran3.from_state(state)
-
-    with suppress(StopIteration):
-        for _ in range(100):
-            if next(test) != next(ran3):
-                return None
-
-    return test.state()
+    return synchronize(gen, Ran3.from_state(state))

@@ -21,6 +21,7 @@ from seedseeker.utils.iterator import drop
 
 GENERATOR_LIMIT = 1000
 
+
 @pytest.mark.parametrize(
     ("seed", "values_to_consume"),
     [
@@ -72,7 +73,7 @@ def test_ran3_reverser(seed: int, values_to_consume: int) -> None:
 )
 def test_ran3_reverser_negative(prng: Iterator[int]) -> None:
     """Test the reverser with another generator and check that it fails."""
-    assert reverse_ran3(prng) is None
+    assert reverse_ran3(islice(prng, GENERATOR_LIMIT)) is None
 
 
 def create_random_fibonaci_test() -> tuple[int, int, int, list[int], int, bool]:
@@ -173,7 +174,7 @@ def test_fibonacci_reverser(
 )
 def test_fibonacci_reverser_negative(prng: Iterator[int]) -> None:
     """Test the reverser with another generator and check that it fails."""
-    assert reverse_fibonacci(prng) is None
+    assert reverse_fibonacci(islice(prng, GENERATOR_LIMIT)) is None
 
 
 @pytest.mark.parametrize(
@@ -225,7 +226,7 @@ def test_lcg_reverser(
 )
 def test_lcg_reverser_negative(prng: Iterator[int]) -> None:
     """Test the reverser with another generator and check that it fails."""
-    assert reverse_lcg(prng) is None
+    assert reverse_lcg(islice(prng, GENERATOR_LIMIT)) is None
 
 
 @pytest.mark.parametrize(
@@ -283,7 +284,7 @@ def test_xoshiro_reverser(seed: XoshiroState, values_to_consume: int) -> None:
 )
 def test_xoshiro_reverser_negative(prng: Iterator[int]) -> None:
     """Test the reverser with another generator and check that it fails."""
-    assert reverse_xoshiro(prng) is None
+    assert reverse_xoshiro(islice(prng, GENERATOR_LIMIT)) is None
 
 
 @pytest.mark.parametrize(
@@ -349,4 +350,4 @@ def test_reverse_mersenne(seed: int, values_to_consume: int) -> None:
 )
 def test_mersenne_reverser_negative(prng: Iterator[int]) -> None:
     """Test the reverser with another generator and check that it fails."""
-    assert reverse_mersenne(prng) is None
+    assert reverse_mersenne(islice(prng, GENERATOR_LIMIT)) is None

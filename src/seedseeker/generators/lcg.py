@@ -6,7 +6,7 @@ from typing import NamedTuple, override
 from mod import Mod
 
 from seedseeker.defs import IntegerRNG
-from seedseeker.utils.iterator import BufferingIterator, drop
+from seedseeker.utils.iterator import BufferingIterator, drop, synchronize
 from seedseeker.utils.primes import divisors
 
 
@@ -61,9 +61,8 @@ class Lcg(IntegerRNG[LcgState]):
     @staticmethod
     def from_state(state: LcgState) -> "Lcg":
         """Create a new LCG from given state."""
-        rng = Lcg(0, 0, 0, 0)
-        rng.a, rng.c, rng.x_n = state
-        return rng
+        a, c, x_n = state
+        return Lcg(x_n.modulus, a, c, int(x_n))
 
     @override
     @staticmethod
@@ -86,9 +85,9 @@ class Lcg(IntegerRNG[LcgState]):
         return LcgState(a, c, Mod(x_0, m))
 
 
-def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
+def reverse_lcg(gen: Iterator[int]) -> LcgState | None:
     """Attempt to reverse-engineer LCG parameters."""
-    buffered_lcg = BufferingIterator(lcg, max_size=3)
+    buffered_lcg = BufferingIterator(gen, max_size=3)
 
     differences = BufferingIterator(
         (b - a for a, b in pairwise(buffered_lcg)), max_size=4
@@ -141,4 +140,7 @@ def reverse_lcg(lcg: Iterator[int]) -> LcgState | None:
             if not 0 <= increment < modulus:
                 continue
 
-            return LcgState(multiple, increment, Mod(a3, modulus))
+            guessed_gen = Lcg.from_state(
+                LcgState(multiple, increment, Mod(a3, modulus))
+            )
+            return synchronize(gen, guessed_gen)

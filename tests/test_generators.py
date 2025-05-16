@@ -12,6 +12,8 @@ from seedseeker.generators import (
 )
 from seedseeker.generators.mersenne import reverse_mersenne
 
+GENERATOR_LIMIT = 1000
+
 
 @pytest.mark.parametrize(
     ("seed", "expected"),
@@ -330,7 +332,7 @@ def test_mersenne_string() -> None:
     state = generator.state()
     assert MersenneTwister.from_string("0").state() == state
 
-    randcrack = reverse_mersenne(generator)
+    randcrack = reverse_mersenne(islice(generator, GENERATOR_LIMIT))
     assert randcrack is not None
 
     from_string = generator.state_from_string(str(randcrack))

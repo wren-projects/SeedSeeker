@@ -167,7 +167,7 @@ def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackState | None:
     if counting.count < 624:
         return None
 
-    for value in islice(counting, 100):
+    for value in counting:
         if value != predictor.predict_getrandbits(32):
             return None
 
