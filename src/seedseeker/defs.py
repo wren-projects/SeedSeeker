@@ -2,6 +2,20 @@ from collections.abc import Iterator
 from typing import Protocol, Self
 
 
+class InvalidFormatError(Exception):
+    """Invalid format exception."""
+
+    def __str__(self) -> str:
+        """Return error message."""
+        output = [f"Invalid format: {self.args[0]}"]
+
+        e = self
+        while (e := e.__cause__) is not None:
+            output.append(f"\tcaused by: {e}")
+
+        return "\n".join(output)
+
+
 class IntegerRNG[StateT](Protocol):
     """Integer random number generator protocol."""
 

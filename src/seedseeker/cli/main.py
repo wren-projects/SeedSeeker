@@ -4,6 +4,7 @@ from contextlib import nullcontext
 from itertools import islice
 from typing import TextIO
 
+from seedseeker.defs import InvalidFormatError
 from seedseeker.generators import (
     FibonacciRng,
     Lcg,
@@ -168,7 +169,10 @@ def int_or_default(value: any, default: int) -> int:
 
 def reverse_sequence(inp: FileStream, out: TextIO, limit: str | None) -> None:
     """Reverse the sequence and print all matching generator states."""
-    sequence = list(islice(map(int, inp), int_or_default(limit, 1024)))
+    try:
+        sequence = list(islice(map(int, inp), int_or_default(limit, 1024)))
+    except ValueError as e:
+        raise InvalidFormatError("Found non-integer value in input sequence") from e
 
     found = False
     for name, reverser in REVERSERS.items():
@@ -183,33 +187,30 @@ def reverse_sequence(inp: FileStream, out: TextIO, limit: str | None) -> None:
 
 def generate_numbers(inp: FileStream, out: TextIO, args: Namespace) -> None:
     """Generate numbers from given generator args."""
-    if args.generator:
-        name, parameters, count = args.generator
 
-        if name not in GENERATORS:
-            print(f"Error: Unknown generator {name}", file=sys.stderr)
-            sys.exit(1)
-
-        print(
-            *islice(GENERATORS[name].from_string(parameters), int(count)),
-            file=out,
-            sep="\n",
-        )
-
-        return
-
-    for line in inp:
+    def run_one(line: str) -> None:
         name, parameters, count = line.split()
 
         if name not in GENERATORS:
             print(f"Error: Unknown generator {name}", file=sys.stderr)
             sys.exit(1)
 
-        print(
-            *islice(GENERATORS[name].from_string(parameters), int(count)),
-            file=out,
-            sep=";",
-        )
+        try:
+            print(
+                *islice(GENERATORS[name].from_string(parameters), int(count)),
+                file=out,
+                sep="\n",
+            )
+        except (InvalidFormatError, AssertionError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+    if args.generator:
+        run_one(" ".join(args.generator))
+        return
+
+    for line in inp:
+        run_one(line)
 
 
 def predict_numbers(inp: FileStream, out: TextIO, count: int | None) -> None:
@@ -225,6 +226,10 @@ def predict_numbers(inp: FileStream, out: TextIO, count: int | None) -> None:
 
         generator_class = GENERATORS[name]
 
-        state = generator_class.state_from_string(args)
+        try:
+            state = generator_class.state_from_string(args)
+        except InvalidFormatError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
 
         print(*islice(generator_class.from_state(state), limit), file=out, sep=";")

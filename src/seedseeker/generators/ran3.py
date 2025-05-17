@@ -2,7 +2,7 @@ import itertools
 from collections.abc import Iterator
 from typing import NamedTuple, override
 
-from seedseeker.defs import IntegerRNG
+from seedseeker.defs import IntegerRNG, InvalidFormatError
 from seedseeker.utils.iterator import synchronize
 
 
@@ -150,19 +150,35 @@ class Ran3(IntegerRNG[Ran3State]):
     @staticmethod
     def from_string(string: str) -> "Ran3":
         """Create generator with states from parameter string."""
-        return Ran3(int(string))
+        try:
+            seed = int(string)
+        except ValueError as e:
+            raise InvalidFormatError("Seed must be an integer") from e
+
+        return Ran3(seed)
 
     @override
     @staticmethod
     def state_from_string(string: str) -> Ran3State:
         """Create state from parameter string."""
-        array, pointer_a, pointer_b = string.split(";")
+        try:
+            array, pointer_a, pointer_b = string.split(";")
+        except ValueError as e:
+            raise InvalidFormatError("Expected 3 parameters") from e
 
-        return Ran3State(
-            list(map(int, array.split(","))),
-            int(pointer_a),
-            int(pointer_b),
-        )
+        try:
+            array = list(map(int, array.split(",")))
+        except ValueError as e:
+            raise InvalidFormatError(
+                "Array must be a comma-separated list of integers"
+            ) from e
+
+        try:
+            pointer_a, pointer_b = map(int, [pointer_a, pointer_b])
+        except ValueError as e:
+            raise InvalidFormatError("Pointer parameters must be integers") from e
+
+        return Ran3State(array, pointer_a, pointer_b)
 
 
 def reverse_ran3(gen: Iterator[int]) -> Ran3State | None:

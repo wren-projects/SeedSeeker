@@ -3,12 +3,11 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Iterator
 from itertools import islice
-from sys import stderr
 from typing import NamedTuple, override
 
 from mod import Mod
 
-from seedseeker.defs import IntegerRNG
+from seedseeker.defs import IntegerRNG, InvalidFormatError
 from seedseeker.generators.lcg import Lcg
 from seedseeker.utils.iterator import BufferingIterator, CountingIterator, drop
 
@@ -112,14 +111,22 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         params = string.split(";")
 
         if len(params) < 4:
-            raise SyntaxError
-
-        r, s, m = map(int, params[:3])
+            raise InvalidFormatError("Expected at least 4 parameters")
 
         try:
-            seed = int(params[3])
-        except ValueError:
-            seed = list(map(int, params[3].strip("[]").split(",")))
+            r, s, m = map(int, params[:3])
+        except ValueError as e:
+            raise InvalidFormatError("All parameters must be integers") from e
+
+        try:
+            if params[3].isnumeric():
+                seed = int(params[3])
+            else:
+                seed = list(map(int, params[3].strip("[]").split(",")))
+        except ValueError as e:
+            raise InvalidFormatError(
+                "Seed must be an integer or a comma-separated list"
+            ) from e
 
         carry = True
 
@@ -132,28 +139,39 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
                 case "true":
                     carry = True
                 case _:
-                    stderr.write(
-                        f"Warning: Invalid carry value {carry_param}, setting to True"
-                    )
-                    carry = True
+                    raise InvalidFormatError(f"Invalid carry parameter {carry_param}")
 
         return FibonacciRng(r, s, m, seed, carry)
 
     @override
     @staticmethod
     def state_from_string(string: str) -> FibonacciState:
-        r, s, m, seed, carry = string.split(";")
+        try:
+            r, s, m, seed, carry = string.split(";")
+        except ValueError as e:
+            raise InvalidFormatError("Expected 5 parameters") from e
 
-        r, s, m = map(int, [r, s, m])
-        seed = list(map(int, seed.split(",")))
+        try:
+            r, s, m = map(int, [r, s, m])
+        except ValueError as e:
+            raise InvalidFormatError("All parameters must be integers") from e
+
+        try:
+            seed = list(map(int, seed.split(",")))
+        except ValueError as e:
+            raise InvalidFormatError(
+                "Seed must be a comma-separated list of integers"
+            ) from e
 
         match carry:
             case "False":
                 carry = False
             case "True":
                 carry = True
-            case _:
+            case "None":
                 carry = None
+            case _:
+                raise InvalidFormatError(f"Invalid carry parameter {carry}")
 
         return FibonacciState(r, s, m, seed, carry)
 

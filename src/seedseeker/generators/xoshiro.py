@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from typing import NamedTuple, override
 
-from seedseeker.defs import IntegerRNG
+from seedseeker.defs import IntegerRNG, InvalidFormatError
 from seedseeker.utils.iterator import synchronize
 
 
@@ -67,14 +67,20 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     @staticmethod
     def from_string(string: str) -> "Xoshiro":
         """Create generator with states from parameter string."""
-        s0, s1, s2, s3 = map(int, string.split(";"))
+        try:
+            s0, s1, s2, s3 = map(int, string.split(";"))
+        except ValueError as e:
+            raise InvalidFormatError("Expected 4 integer parameters") from e
         return Xoshiro(XoshiroState(s0, s1, s2, s3))
 
     @override
     @staticmethod
     def state_from_string(string: str) -> XoshiroState:
         """Create state from parameter string."""
-        s0, s1, s2, s3 = map(int, string.split(";"))
+        try:
+            s0, s1, s2, s3 = map(int, string.split(";"))
+        except ValueError as e:
+            raise InvalidFormatError("Expected 4 integer parameters") from e
 
         return XoshiroState(s0, s1, s2, s3)
 

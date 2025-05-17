@@ -4,7 +4,7 @@ from typing import NamedTuple, override
 
 from randcrack import RandCrack
 
-from seedseeker.defs import IntegerRNG
+from seedseeker.defs import IntegerRNG, InvalidFormatError
 from seedseeker.utils.iterator import CountingIterator
 
 
@@ -133,27 +133,38 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     @staticmethod
     def from_string(string: str) -> "MersenneTwister":
         """Create generator with states from parameter string."""
-        params = string.split(";")
+        try:
+            seed = int(string)
+        except ValueError as e:
+            raise InvalidFormatError("Seed must be an integer") from e
 
-        if len(params) < 1:
-            raise SyntaxError
-
-        seed = int(params[0])
         return MersenneTwister(seed)
 
     @override
     @staticmethod
     def state_from_string(string: str) -> RandCrackState:
         """Create state from parameter string."""
-        array, counter = string.split(";")
+        try:
+            array, counter = string.split(";")
+        except ValueError as e:
+            raise InvalidFormatError("Expected 2 parameters") from e
 
         def int_to_bits(i: int) -> list[int]:
             return [(i >> b) & 1 for b in reversed(range(32))]
 
-        return RandCrackState(
-            [int_to_bits(int(i32, 16)) for i32 in array.split(",")],
-            int(counter),
-        )
+        try:
+            array = [int_to_bits(int(i32, 16)) for i32 in array.split(",")]
+        except ValueError as e:
+            raise InvalidFormatError(
+                "Array must be a comma-separated list of hexadecimal integers"
+            ) from e
+
+        try:
+            counter = int(counter)
+        except ValueError as e:
+            raise InvalidFormatError("Counter must be an integer") from e
+
+        return RandCrackState(array, counter)
 
 
 def reverse_mersenne(mersenne: Iterator[int]) -> RandCrackState | None:

@@ -5,7 +5,7 @@ from typing import NamedTuple, override
 
 from mod import Mod
 
-from seedseeker.defs import IntegerRNG
+from seedseeker.defs import IntegerRNG, InvalidFormatError
 from seedseeker.utils.iterator import BufferingIterator, drop, synchronize
 from seedseeker.utils.primes import divisors
 
@@ -36,10 +36,10 @@ class Lcg(IntegerRNG[LcgState]):
 
     def __init__(self, m: int, a: int, c: int, x_0: int) -> None:
         """Create a Linear Congruential Generator (LCG)."""
-        assert m > 0
-        assert 0 < a < m
-        assert 0 <= c < m
-        assert 0 <= x_0 < m
+        assert m > 0, "Modulus must be larger than 0"
+        assert 0 < a < m, "Multiplier must be in range (0, m)"
+        assert 0 <= c < m, "Increment must be in range [0, m)"
+        assert 0 <= x_0 < m, "Initial value must be in range [0, m)"
 
         self.m = m
         self.a = a
@@ -74,14 +74,22 @@ class Lcg(IntegerRNG[LcgState]):
     @staticmethod
     def from_string(string: str) -> "Lcg":
         """Create generator with states from parameter string."""
-        m, a, c, x_0 = map(int, string.split(";"))
+        try:
+            m, a, c, x_0 = map(int, string.split(";"))
+        except ValueError as e:
+            raise InvalidFormatError("Expected 4 integer parameters") from e
+
         return Lcg(m, a, c, x_0)
 
     @override
     @staticmethod
     def state_from_string(string: str) -> LcgState:
         """Create state from parameter string."""
-        m, a, c, x_0 = map(int, string.split(";"))
+        try:
+            m, a, c, x_0 = map(int, string.split(";"))
+        except ValueError as e:
+            raise InvalidFormatError("Expected 4 integer parameters") from e
+
         return LcgState(a, c, Mod(x_0, m))
 
 
