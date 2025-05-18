@@ -19,7 +19,7 @@ from seedseeker.generators import (
 )
 from seedseeker.utils.filestream import FileStream
 
-VERSION = "1.0"
+VERSION = "0.1"
 
 GENERATORS = {
     "fibonacci": FibonacciRng,
