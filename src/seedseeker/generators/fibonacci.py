@@ -47,6 +47,15 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
         self, r: int, s: int, m: int, seed: list[int] | int = 0, with_carry: bool = True
     ) -> None:
         """Create an additive Lagged Fibonacci PRNG."""
+        assert m > 0, "Modulus must be positive"
+        assert 0 < r < m and 0 < s < m, (
+            "Lags r and s must be positive and less than the modulus"
+        )
+        assert r != s, "Lags r and s must be different"
+
+        # allow for r, s to be given in any order
+        r, s = min(r, s), max(r, s)
+
         if isinstance(seed, int):
             assert seed >= 0, "Seed must be non-negative"
             seed = seed % 2147483563 if seed != 0 else FibonacciRng.DEFAULT_SEED
@@ -56,9 +65,6 @@ class FibonacciRng(IntegerRNG[FibonacciState]):
                 f"Seed must be of length max(r, s) ({max(r, s)})"
             )
             assert all(n >= 0 for n in seed), "All seed values must be non-negative"
-
-        # allow for r, s to be given in any order
-        r, s = min(r, s), max(r, s)
 
         self.r = r
         self.s = s

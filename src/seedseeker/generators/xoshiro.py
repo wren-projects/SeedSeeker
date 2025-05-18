@@ -31,6 +31,11 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     def __init__(self, seed: tuple[int, int, int, int]) -> None:
         """Create a new Xoshiro256** PRNG from given seed."""
         assert any(x != 0 for x in seed), "Seed can't be all zero"
+        assert len(seed) == 4, "Seed must be of length 4"
+        assert all(0 <= x < self.MODULO for x in seed), (
+            "All seed values must be in range [0, 2**64)"
+        )
+
         self.s0, self.s1, self.s2, self.s3 = seed
 
     @override

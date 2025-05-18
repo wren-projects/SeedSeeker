@@ -39,12 +39,12 @@ class Ran3(IntegerRNG[Ran3State]):
 
     def __init__(self, seed: int) -> None:
         """Create a new Ran3 PRNG from the given seed."""
-        # protect users from poor seeds (e.g. 0)
-        while seed > self.MAX_INT:
+        # simulate Int32's native overflow
+        if seed not in range(self.MIN_INT, self.MAX_INT + 1):
+            seed %= 2**32
             seed -= 2**32
-        while seed < self.MIN_INT:
-            seed += 2**32
 
+        # protect users from poor seeds (e.g. 0)
         real_seed = self.MSEED - abs(seed)
         self.seed_array = [0] * 55 + [real_seed]
 
@@ -77,6 +77,7 @@ class Ran3(IntegerRNG[Ran3State]):
             if self.seed_array[i] > self.MAX_INT:
                 self.seed_array[i] -= 2**32
 
+            # make sure all values are positive
             if self.seed_array[i] < 0:
                 self.seed_array[i] += self.MAX_INT
 
