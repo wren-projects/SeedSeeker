@@ -85,7 +85,7 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "-len",
+        "-l",
         "--length",
         metavar="<total>",
         help=(
