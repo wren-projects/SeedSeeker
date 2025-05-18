@@ -1,5 +1,5 @@
 import sys
-from argparse import Action, ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace
 from contextlib import nullcontext
 from itertools import islice
 from typing import TextIO
@@ -38,25 +38,6 @@ REVERSERS = {
 }
 
 
-class GeneratorAction(Action):
-    """Custom action to parse generator arguments."""
-
-    def __call__(
-        self,
-        parser: ArgumentParser,
-        namespace: Namespace,
-        values: list[str],
-        option_string: str | None = None,
-    ):
-        """Parse generator arguments."""
-        if len(values) != 3:
-            parser.error(
-                f"{option_string} requires exactly 3 arguments,"
-                f" but {len(values)} were given."
-            )
-        setattr(namespace, self.dest, values)
-
-
 def main() -> None:
     """CLI entry point."""
     parser = ArgumentParser(
@@ -75,14 +56,9 @@ def main() -> None:
     command_group.add_argument(
         "-g",
         "--generator",
-        nargs="*",
-        metavar=("<name>", "<arguments>", "<count>"),
-        # action=GeneratorAction,
-        help=(
-            "Generate a sequence of numbers from a generator with given arguments. "
-            "Either takes the values directly, or if none are supplied, reads them "
-            "from stdin or file (see -i)"
-        ),
+        metavar=("<name>", "<arguments>"),
+        nargs=2,
+        help="Generate a sequence of numbers from a generator with given arguments.",
     )
 
     command_group.add_argument(
@@ -102,9 +78,7 @@ def main() -> None:
         ),
     )
 
-    parser.add_argument(
-        "-i", "--input", metavar="<file>", help="Reads numbers from file"
-    )
+    parser.add_argument("-i", "--input", metavar="<file>", help="Reads input from file")
 
     parser.add_argument(
         "-o", "--output", metavar="<file>", help="Writes output to file"
@@ -115,8 +89,8 @@ def main() -> None:
         "--length",
         metavar="<total>",
         help=(
-            "Length of the sequence to reverse or predict. Defaults to 1024 or 16"
-            " respectively"
+            "Length of the sequence to reverse or generate/predict. Defaults to 1024"
+            " or 16 respectively"
         ),
     )
 
@@ -149,7 +123,7 @@ def main() -> None:
 def run_with_io(inp: FileStream, out: TextIO, args: Namespace) -> None:
     """Run the program with given IO."""
     if args.generator is not None:
-        generate_numbers(inp, out, args)
+        generate_numbers(out, args)
     elif args.reverse:
         reverse_sequence(inp, out, args.length)
     elif args.predict is not None:
@@ -185,32 +159,25 @@ def reverse_sequence(inp: FileStream, out: TextIO, limit: str | None) -> None:
         sys.exit(1)
 
 
-def generate_numbers(inp: FileStream, out: TextIO, args: Namespace) -> None:
+def generate_numbers(out: TextIO, args: Namespace) -> None:
     """Generate numbers from given generator args."""
+    name, parameters = args.generator
 
-    def run_one(line: str) -> None:
-        name, parameters, count = line.split()
+    count = int_or_default(args.length, 16)
 
-        if name not in GENERATORS:
-            print(f"Error: Unknown generator {name}", file=sys.stderr)
-            sys.exit(1)
+    if name not in GENERATORS:
+        print(f"Error: Unknown generator {name}", file=sys.stderr)
+        sys.exit(1)
 
-        try:
-            print(
-                *islice(GENERATORS[name].from_string(parameters), int(count)),
-                file=out,
-                sep="\n",
-            )
-        except (InvalidFormatError, AssertionError) as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
-
-    if args.generator:
-        run_one(" ".join(args.generator))
-        return
-
-    for line in inp:
-        run_one(line)
+    try:
+        print(
+            *islice(GENERATORS[name].from_string(parameters), count),
+            file=out,
+            sep="\n",
+        )
+    except (InvalidFormatError, AssertionError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def predict_numbers(inp: FileStream, out: TextIO, count: int | None) -> None:
