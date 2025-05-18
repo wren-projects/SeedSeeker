@@ -84,7 +84,7 @@ jobs:
           echo "BINARY=${BINARY}" >> "$GITHUB_OUTPUT"
 
           case $TARGET in
-            ubuntu) ARCHIVE="seedseeker_$TARGET.tar.gz" ;;
+            ubuntu) ARCHIVE="seedseeker_linux.tar.gz" ;;
             *)      ARCHIVE="seedseeker_$TARGET.zip" ;;
           esac;
 
