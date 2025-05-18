@@ -5,9 +5,16 @@ from typing import Protocol, Self
 class InvalidFormatError(Exception):
     """Invalid format exception."""
 
+    message: str
+
+    def __init__(self, message: str) -> None:
+        """Initialize the exception."""
+        super().__init__(message)
+        self.message = message
+
     def __str__(self) -> str:
         """Return error message."""
-        output = [f"Invalid format: {self.args[0]}"]
+        output = [self.message]
 
         e = self
         while (e := e.__cause__) is not None:
