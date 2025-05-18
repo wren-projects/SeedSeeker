@@ -28,7 +28,7 @@ class Xoshiro(IntegerRNG[XoshiroState]):
     s2: int
     s3: int
 
-    def __init__(self, seed: XoshiroState) -> None:
+    def __init__(self, seed: tuple[int, int, int, int]) -> None:
         """Create a new Xoshiro256** PRNG from given seed."""
         assert any(x != 0 for x in seed), "Seed can't be all zero"
         self.s0, self.s1, self.s2, self.s3 = seed
