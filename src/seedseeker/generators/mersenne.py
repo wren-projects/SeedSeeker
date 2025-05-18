@@ -74,35 +74,35 @@ class MersenneTwister(IntegerRNG[MersenneTwisterState]):
     @override
     def __next__(self) -> int:
         """Return the next value."""
-        if self.rand_crack is None:
-            k = self.state_index
-            j = k - (self.N - 1)
-            if j < 0:
-                j += self.N
+        if self.rand_crack is not None:
+            return self.rand_crack.predict_getrandbits(32)
 
-            x = (self.state_array[k] & self.UMASK) | (self.state_array[j] & self.LMASK)
-            x_a = x >> 1
-            if x & 1:  # modulo 2 == 1
-                x_a ^= self.A
+        k = self.state_index
+        j = k - (self.N - 1)
+        if j < 0:
+            j += self.N
 
-            j = k - (self.N - self.M)
-            if j < 0:
-                j += self.N
+        x = (self.state_array[k] & self.UMASK) | (self.state_array[j] & self.LMASK)
+        x_a = x >> 1
+        if x & 1:  # modulo 2 == 1
+            x_a ^= self.A
 
-            x = self.state_array[j] ^ x_a
-            self.state_array[k] = x
-            k += 1
-            if k >= self.N:
-                k = 0
-            self.state_index = k
+        j = k - (self.N - self.M)
+        if j < 0:
+            j += self.N
 
-            y = x ^ (x >> self.U)
-            y ^= (y << self.S) & self.B
-            y ^= (y << self.T) & self.C
-            y ^= y >> self.L
-            return y & 0xFFFFFFFF  # Ensure 32-bit output
+        x = self.state_array[j] ^ x_a
+        self.state_array[k] = x
+        k += 1
+        if k >= self.N:
+            k = 0
+        self.state_index = k
 
-        return self.rand_crack.predict_getrandbits(32)
+        y = x ^ (x >> self.U)
+        y ^= (y << self.S) & self.B
+        y ^= (y << self.T) & self.C
+        y ^= y >> self.L
+        return y & 0xFFFFFFFF  # Ensure 32-bit output
 
     @override
     def state(self) -> MersenneTwisterState | RandCrackState:
