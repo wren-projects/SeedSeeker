@@ -2,42 +2,90 @@
 .SH NAME
 seedseeker \- PRNG reversal tool
 .SH SYNOPSIS
-Reversal mode: python \-m seedseeker 
-.br
-takes user input separated by new lines until empty line is passed, then runs reversal
+This program has 3 main usage modes
 
-Generative mode: python \-m seedseeker [-g, --generator] <generator_name> <generator_state> <sequence_length>
+Reversal mode: 
+.in +.5i
+e.g.: python \-m seedseeker -r
 .br
-generates <sequence_length> values using <generator_name> with initial state <generator_state>
+Unless input file is specified the program will take user input separated by new lines until empty line is passed, then runs reversal. For each generator where reversal succeeded a line with it's state will be output.
+.in
+
+Generative mode: 
+.in +.5i
+python \-m seedseeker -g <name> <state> [-l <sequence_length>]
+.br
+Will generate <sequence_length numbers> using <name> generator with <state> initial state.
+If length is not specified, the program will generate default length of numbers, which depends on the generator used
+.in
+
+Predictive mode:
+.in +.5i
+python \-m seedseeker -p <number_of_predictions>
+.br
+Unless an input file is specified the program will take user input. The input expects a name of the generator
+and it's internal state as input similar to generative mode. This difference from generative mode is that there
+the program expects a seed of exactly one generator. Predictive mode can take as input internal states of a number of generators and run predictions on all of them. (With some generators getting to the initial state isn't possible,
+the best one can do is find a state from which future values can be predicted e.g.: Mersenne Twister) 
+.in
+
 
 .SH DESCRIPTION
-A tool with the ability to infer internal parameters of PRNGs from a sufficently sized data sample.
+A tool with the ability to infer internal parameters of PRNGs from a sufficiently sized data sample.
 
 -h, --help
-.br
-	show this help message and exit
+.in +.5i
+show this help message and exit
+.in
 
--g, --generator <generator_name> <generator_state> <sequence_length> 
-.br
-	Generates <sequence_length> numbers by generator <generator_name> with initial state <generator_state>.
-.br
-	Generator state format is specified in documentation
+-g, --generator <name> <arguments>  
+.in +.5i
+Generates numbers by generator <name> with initial state defined by <arguments>. 
+The number of generated values defaults to 16 or 1024 depending on the generator.
+The generated sequence can have length such that the program will be unable to reverse it.
+.in
 
--fi <filepath>, --file-in <filepath> 
-.br
-	Reads numbers from file
+-l
+.in +.5i
+Length of the sequence generated. Overrides default lengths when generating numbers using -g.
+.in
 
--fo <filepath>, --file-out <filepath>
+-r, --reverse
+.in +.5i
+Reverses the given sequence of numbers from input. 
+Prints generator state for every generator where reversal attempt succeeded. 
 .br
-	Writes output to file
+Note: 
+.in +.5i
+For some generators reversal can be quite dependent on the arguments of the generator. This tool works well if the generators have well defined arguments, in degenerated cases output may not match the expected result.
+.in -1i
 
--len <total>, --length <total>
+-p, --predict <count>
+.in +.5i
+Predicts future values from a given generator state.
+The generator state can be either input while the program runs or read from a file.
 .br
-	Maximal length of the reversed sequence, overriden when -g is used. 0 = unlimited
+For example:
+.in +.5i
+python -m seedseeker -r -i values.txt -o gen_state.txt
+.br
+python -m seedseeker -p 10 -i gen_state.txt
+.in -1i
+
+-i <filepath>, --in <filepath> 
+.in +.5i
+The program will read input from the specified file.
+.in
+
+-o <filepath>, --file-out <filepath>
+.in +.5i
+Output of the program will be written to the specified file.
+.in
 
 -v, --version
-.br
-	Program version
+.in +.5i
+Program version
+.in
 
 .SH SEE ALSO
 dieharder(1)
