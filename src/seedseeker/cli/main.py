@@ -2,7 +2,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from contextlib import nullcontext
 from itertools import islice
-from typing import TextIO
+from typing import Any, TextIO
 
 from seedseeker.defs import InvalidFormatError
 from seedseeker.generators import (
@@ -133,7 +133,7 @@ def run_with_io(inp: FileStream, out: TextIO, args: Namespace) -> None:
         sys.exit(1)
 
 
-def int_or_default(value: any, default: int) -> int:
+def int_or_default(value: Any, default: int) -> int:
     """Convert value to int if possible, otherwise return default."""
     try:
         return int(value)
