@@ -185,7 +185,14 @@ def predict_numbers(inp: FileStream, out: TextIO, count: int | None) -> None:
     limit = int_or_default(count, 16)
 
     for line in inp:
-        name, args = line.split()
+        try:
+            name, args = line.split()
+        except ValueError:
+            print(
+                f"Error: Invalid input line '{line}', expected <name> <state>",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
         if name not in GENERATORS:
             print(f"Error: Unknown reverser {name}", file=sys.stderr)
