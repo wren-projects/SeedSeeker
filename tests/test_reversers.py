@@ -83,8 +83,8 @@ def create_random_fibonaci_test() -> tuple[int, int, int, list[int], int, bool]:
     All of these values are randomly generated.
     """
     r = random.randint(1, 100)
-    s = random.randint(1, 100)
-    m = random.randint(100, 2**32)
+    s = random.randint(r + 1, 150)
+    m = random.randint(max(r, s) + 1, 2**32)
     seed = [random.randint(0, m - 1) for _ in range(max(r, s))]
     values_to_consume = random.randint(0, 100)
     overflow = random.choice([True, False])
