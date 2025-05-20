@@ -17,6 +17,8 @@ python \-m seedseeker -g <name> <state> [-l <sequence_length>]
 .br
 Will generate <sequence_length numbers> using <name> generator with <state> initial state.
 If length is not specified, the program will generate default length of numbers, which depends on the generator used
+
+The expected formats of generator seeds are described in the full documentation
 .in
 
 Predictive mode:
@@ -25,7 +27,7 @@ python \-m seedseeker -p <number_of_predictions>
 .br
 Unless an input file is specified the program will take user input. The input expects a name of the generator
 and it's internal state as input similar to generative mode. This difference from generative mode is that there
-the program expects a seed of exactly one generator. Predictive mode can take as input internal states of a number of generators and run predictions on all of them. (With some generators getting to the initial state isn't possible,
+the program expects a seed of exactly one generator. Predictive mode can take as input internal states of a number of generators and run predictions on all of them. (With some generators getting to the seed isn't possible,
 the best one can do is find a state from which future values can be predicted e.g.: Mersenne Twister) 
 .in
 
