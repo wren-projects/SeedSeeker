@@ -1,0 +1,195 @@
+\documentclass[12pt, a4paper]{report}
+
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xltabular}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{hhline}
+\usepackage{menukeys}
+
+\hypersetup{
+    colorlinks=true,
+    urlcolor=blue,
+		linkcolor=black
+}
+
+\titleformat{\chapter}[block]
+{\normalfont\Huge\bfseries}{\thechapter\ }{0pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-2cm}{10pt}
+
+\usepackage[indent=0pt]{parskip}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\begin{center}
+    \Large{\textbf{University of West Bohemia in Pilsen\\Faculty of Applied Science}}
+
+    \vspace{\fill}
+    \normalsize{Semestral work:\\}
+    \Large{\textbf{SeedSeeker}}
+
+    \vspace{\fill}
+    \normalsize{Authors: Pavel Altmann, Jakub Kopčil,\\Matěj Bartička, David Wimmer, Patrik Holub\\Date: 1st July 2025}
+\end{center}
+\newpage
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+\chapter{Description}
+In programming, generating random values is a common requirement, particularly for applications such as 
+cryptography and systems requiring unpredictability (e.g., slot machines). If an attacker could predict 
+these values, they could exploit this knowledge for malicious purposes.
+
+Most systems employ Pseudo-Random Number Generators (PRNGs), which produce sequences of values through 
+mathematical algorithms rather than true randomness. These algorithms generate sequences that satisfy specific 
+statistical distributions (typically uniform distribution) and share a crucial characteristic: each value depends 
+on previous values. Consequently, the entire sequence derives from an initial starting point called the seed.
+
+Knowledge of the seed enables complete sequence prediction. While methods exist to deduce seeds for certain 
+algorithms, no comprehensive tool previously implemented these techniques. Our solution addresses this gap.
+
+We developed SeedSeeker, a Python application that attempts to reverse-engineer both the generator algorithm and 
+its seed from output sequences. The implementation adopts a modular library approach, facilitating the 
+addition of new generators and reversal methods as they become available.
+
+\chapter{User Manual}
+\section{Download}
+SeedSeeker is available at \href{https://github.com/wren-projects/SeedSeeker}{GitHub} 
+(\url{https://github.com/wren-projects/SeedSeeker}). Users have two installation options:
+
+\begin{itemize}
+    \item Download pre-built binaries from the Releases section (recommended for users without Python experience)
+    \item Clone the repository and run directly via Python (requires dependency installation)
+\end{itemize}
+
+For Python execution, required dependencies can be installed manually or via PEP 518 compliant package manager like 
+\href{https://github.com/astral-sh/uv}{uv} or \href{https://python-poetry.org}{Poetry}.
+
+\section{Usage}
+The tool's help page (accessible via command-line flags) and manpage provide comprehensive usage instructions. 
+SeedSeeker operates in three primary modes:
+
+\begin{enumerate}
+    \item \textbf{Generation}: Execute a specified generator with a given seed 
+        (see Table~\ref{table:1} for seed formats). Generators expect integers as input.
+    \item \textbf{Reversal}: Attempt to deduce the initial state 
+        from output sequences using all applicable reversal algorithms
+    \item \textbf{Prediction}: Generate future values from a known initial state
+\end{enumerate}
+
+\textbf{Important Limitations:}
+\begin{itemize}
+    \item Reversal algorithms perform optimally with standard generator implementations
+    \item Degenerate states (e.g., constant output sequences) may produce incorrect predictions
+    \item Successful reversal doesn't guarantee accurate future predictions for all generators
+\end{itemize}
+
+\begin{table}
+\begin{xltabular}{\textwidth}{| >{\raggedright\arraybackslash}X | >{\raggedright\arraybackslash}X | >{\raggedright\arraybackslash}X |}
+	\caption{Seed formats for generators}
+	\label{table:1}\\
+	\hline
+	\bf{Generator} & \bf{Seed Format} & \bf{Conditions} \\
+	\hhline{|=|=|=|}
+	LCG & 
+	``$m;a;c;x_0$" & 
+	$m > 0 \wedge\break 0 < a < m \wedge\break 0\leq c \leq m \wedge\break 0 \leq x_0 < m$\\
+	\hline
+	Lagged Fibonacci & 
+	``$r;s;m;seed$" or \break ``$r;s;m;s_0, s_1, ..., s_i$" & 
+	$m > 0 \wedge\break 0 < r < m \wedge\break 0 < s < m \wedge\break r \neq s \wedge\break\break seed > 0 \vee\break
+	s_0, s_1, ..., s_i \geq 0 \wedge\break i = max(r, s)$\\
+	\hline
+	ran3 &
+	``$seed$" & 
+  $seed \in \mathbb{Z}$\\
+	\hline
+	Xoshiro256** &
+	``$a;b;c;d$" & 
+	$a,b,c,d \ge 0 \wedge\break 0 < a,b,c,d \leq 2^{64}$ \\
+	\hline
+	Mersenne Twister&
+	``$seed$" &
+	$0 \leq seed \leq 2^{32}$ \\
+	\hline
+\end{xltabular}
+\end{table}
+
+\chapter{Reversal Algorithms}
+\section{LCG}
+Let $x_i$ represent the sequence of LCG outputs. The sequence is defined by the recursive formula:
+$$x_{i+1} = (a \cdot x_i + c) \mod M$$
+
+We first define a second sequence:
+$$y_{i} = x_{i+1} - x_{i}$$ 
+Note that $y_{i+1} = a \cdot y_{i} \mod M$.
+
+Let us denote:
+$$r_i = y_{i} \cdot y_{i+3} - y_{i+1} \cdot y_{i+2}$$
+and observe that $r_i \equiv 0 \mod M$.
+
+To determine the value of $M$, we calculate the GCD of several $r_i$ values and estimate $M$ from the result.
+
+Once $M$ is known, we can compute $a$ by multiplying $r_{i+1}$ by the inverse of $r_{i} \mod M$.
+Finally, $c$ can be derived trivially by subtracting $x_{i+1} \mod M$ from $a
+\cdot x_{i} \mod M$.
+
+\section{ran3}
+The output sequence directly reveals the initial state. By observing 55 consecutive values,
+the generator's state can be fully determined.
+
+\section{Lagged Fibonacci}
+Let $x_i$ represent the sequence of outputs. The relationship is given by:
+$$x_{i} = ((x_{i-r} + x_{i-s}) \mod M) + K,$$ 
+where $K$ equals one iff $x_{i-1} > x_{i-r} + x_{i-s}$.
+
+We reverse this generator using brute force.
+
+We test all possible values of $r$ and $s$ (below a certain threshold). For each pair,
+we compute $x_{i} - x_{i-r} - x_{i-s}$. This value is known to be one of $M-1$, $M$, $M+1$,
+or $0$. By repeating this process multiple times, we can accurately determine the value of $M$.
+
+\section{Xoshiro256**}
+This generator uses a total of 256 bits of internal state, divided into four \verb|uint_64|
+variables (stored in the array `s`).
+
+For a full description, see \href{https://en.m.wikipedia.org/wiki/Xorshift#xoshiro256**}{Wikipedia}.
+
+Let us examine how the internal state evolves in one iteration:
+
+$$[A, B, C, D] \to [A\oplus B\oplus D, A\oplus B \oplus C, A\oplus C\oplus (B<<17), \text{rotl}(B\oplus D)]$$
+where $\oplus$ denotes the bitwise XOR operation.
+
+Note that the output can always be reversed to recover the second element of the given state.
+
+From the first two outputs, we can reconstruct \verb|s[1]| and \verb|s[0]^s[1]^s[2]|.
+
+Let $t$ denote the state after one iteration. We know the values of \verb|t[1]| and \verb|t[2]|.
+
+From the third output, we can reconstruct \verb|t[0]|.
+
+\section{Mersenne Twister}
+We utilize the \href{https://github.com/tna0y/Python-random-module-cracker}{randcrack}
+library for reversing the Mersenne Twister. Refer to it's repository for implementation details.
+
+\chapter{Library Description}
+SeedSeeker's architecture facilitates extensibility through a modular library system. Adding new functionality requires:
+
+\begin{enumerate}
+    \item Implementing a \texttt{GeneratorState} class
+    \item Implementing a \texttt{Generator} class
+    \item Developing a reversal method
+    \item Updating the import registry
+\end{enumerate}
+
+The LCG implementation serves as a reference example. Import configurations reside in the CLI directory.
+\end{document}
