@@ -126,47 +126,60 @@ SeedSeeker operates in three primary modes:
 
 \chapter{Reversal Algorithms}
 \section{LCG}
-Let $x_i$ be the sequence of LCG output. The sequence is given by the recursive formula:
+Let $x_i$ represent the sequence of LCG outputs. The sequence is defined by the recursive formula:
 $$x_{i+1} = (a \cdot x_i + c) \mod M$$
 
-We first create a second sequence:
-$$y_{i} = x_{i+1} - x_{i}$$ Note $y_{i+1} = a \cdot y_{i} \mod M$.
+We first define a second sequence:
+$$y_{i} = x_{i+1} - x_{i}$$ 
+Note that $y_{i+1} = a \cdot y_{i} \mod M$.
 
-Let us denote $$r_i = y_{i} \cdot y_{i+3} - y_{i+1} \cdot y_{i+2}$$
-And note $r_i \equiv 0 \mod M$.
+Let us denote:
+$$r_i = y_{i} \cdot y_{i+3} - y_{i+1} \cdot y_{i+2}$$
+and observe that $r_i \equiv 0 \mod M$.
 
-So to retrieve the value of modulo, we can just take an arbitrary number of $r_i$s, calculate their GCD and estimate $M$ based on that value.
+To determine the value of $M$, we calculate the GCD of several $r_i$ values and estimate $M$ from the result.
 
-Once we have modulo, we can just multiply $r_{i+1}$ by the inverse of $r_{i}$ in modulus $M$ to retrieve $a$. Finally we trivially retrieve $c$.
+Once $M$ is known, we can compute $a$ by multiplying $r_{i+1}$ by the inverse of $r_{i} \mod M$.
+Finally, $c$ can be derived trivially by subtracting $x_{i+1} \mod M$ from $a
+\cdot x_{i} \mod M$.
 
 \section{ran3}
-The output sequence directly reveals the initial state. By observing 55 consecutive values, we completely determine the generator's state.
+The output sequence directly reveals the initial state. By observing 55 consecutive values,
+the generator's state can be fully determined.
 
 \section{Lagged Fibonacci}
-Let $x_i$ be the sequence of outputs. We know, that $x_{i} = ((x_{i-r} + x_{i-s}) \mod M) + K$, where $K$ is one if $x_{i-1} > x_{i-r} + x_{i-s}$.
-We reverse this generator by brute force.
+Let $x_i$ represent the sequence of outputs. The relationship is given by:
+$$x_{i} = ((x_{i-r} + x_{i-s}) \mod M) + K,$$ 
+where $K$ equals one if $x_{i-1} > x_{i-r} + x_{i-s}$.
 
-We try out all possible values of $r$ and $s$ (lower than some threshold). Then, for each of them, we calculate $x_{i} - x_{i-r} - x_{i-s}$. We know this is either $M-1, M, M+1$ or $0$. By doing this multiple times, we pinpoint get the exact value of $M$.
+We reverse this generator using brute force.
+
+We test all possible values of $r$ and $s$ (below a certain threshold). For each pair,
+we compute $x_{i} - x_{i-r} - x_{i-s}$. This value is known to be one of $M-1$, $M$, $M+1$,
+or $0$. By repeating this process multiple times, we can accurately determine the value of $M$.
 
 \section{Xoshiro256**}
-This generator uses a total of 256 bits of inner state broken up into 4 \verb|uint_64| variables (stored in array `s`).
+This generator uses a total of 256 bits of internal state, divided into four \verb|uint_64|
+variables (stored in the array `s`).
 
-For full description, see \href{https://en.m.wikipedia.org/wiki/Xorshift#xoshiro256**}{here}.
+For a full description, see \href{https://en.m.wikipedia.org/wiki/Xorshift#xoshiro256**}{Wikipedia}.
 
-Let us explore, how does the inner state change in one iteration:
+Let us examine how the internal state evolves in one iteration:
 
 $$[A, B, C, D] \to [A\oplus B\oplus D, A\oplus B \oplus C, A\oplus C\oplus (B<<17), \text{rotl}(B\oplus D)]$$
-, where $\oplus$ denotes bitwise XOR.
+where $\oplus$ denotes the bitwise XOR operation.
 
-Note that the output is always reversible into the second element of given state.
+Note that the output can always be reversed to recover the second element of the given state.
 
-We can retrieve \verb|s[1]| and \verb|s[0]^s[1]^s[2]| from the first 2 outputs.
+From the first two outputs, we can reconstruct \verb|s[1]| and \verb|s[0]^s[1]^s[2]|.
 
-Let us denote t the state after one iteration. Note we know the value of \verb|t[1]| and \verb|t[2]|.
+Let $t$ denote the state after one iteration. We know the values of \verb|t[1]| and \verb|t[2]|.
 
-From 3rd output, we can reconstruct \verb|t[0]|.
+From the third output, we can reconstruct \verb|t[0]|.
+
 \section{Mersenne Twister}
-We incorporated the \href{https://github.com/tna0y/Python-random-module-cracker}{randcrack} library for Mersenne Twister reversal. Refer to the source repository for implementation details.
+We utilize the \href{https://github.com/tna0y/Python-random-module-cracker}{randcrack}
+library for reversing the Mersenne Twister. Refer to it's repository for implementation details.
 
 \chapter{Library Description}
 SeedSeeker's architecture facilitates extensibility through a modular library system. Adding new functionality requires:
