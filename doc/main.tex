@@ -150,7 +150,7 @@ the generator's state can be fully determined.
 \section{Lagged Fibonacci}
 Let $x_i$ represent the sequence of outputs. The relationship is given by:
 $$x_{i} = ((x_{i-r} + x_{i-s}) \mod M) + K,$$ 
-where $K$ equals one if $x_{i-1} > x_{i-r} + x_{i-s}$.
+where $K$ equals one iff $x_{i-1} > x_{i-r} + x_{i-s}$.
 
 We reverse this generator using brute force.
 
