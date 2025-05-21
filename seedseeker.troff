@@ -25,11 +25,8 @@ Prediction mode:
 .in +.5i
 python \-m seedseeker -p [-l <total>]
 .br
-If no input file is specified, the program will accept user input. The input should include the name
-of the generator and its internal state, similar to generative mode. Unlike generative mode,
-predictive mode can process the internal states of multiple generators and predict future values for
-all of them. (For some generators, obtaining the exact seed may not be possible. In such cases, the
-tool can find a state from which future values can still be predicted, e.g., Mersenne Twister.) 
+Reads reversed generator states from the input and predicts the next <total> values.
+Default <total> is 16 and can be changed with the -l flag.
 .in
 
 Generally, the program reads input from stdin and writes output to stdout (and errors to stderr).
@@ -68,8 +65,10 @@ to be reversed. Default is 16 or 1024 respectively.
 
 -r, --reverse
 .in +.5i
-Tries to reverse the given sequence of numbers from input.
-Prints generator name and state for every generator where the reversal succeeded.
+Tries to reverse the given sequence of numbers from input. Prints generator name
+and state for every generator where the reversal succeeded. The state should match
+the end of the input sequence (or the point, where it reaches the limit specified
+with -l).
 .br
 Note: 
 .in +.5i
