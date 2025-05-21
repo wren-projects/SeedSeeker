@@ -122,7 +122,7 @@ def main() -> None:
 
 def run_with_io(inp: FileStream, out: TextIO, args: Namespace) -> None:
     """Run the program with given IO."""
-    if args.generator is not None:
+    if args.generate is not None:
         generate_numbers(out, args)
     elif args.reverse:
         reverse_sequence(inp, out, args.length)
@@ -161,7 +161,7 @@ def reverse_sequence(inp: FileStream, out: TextIO, limit: str | None) -> None:
 
 def generate_numbers(out: TextIO, args: Namespace) -> None:
     """Generate numbers from given generator args."""
-    name, parameters = args.generator
+    name, parameters = args.generate
 
     count = int_or_default(args.length, 16)
 
