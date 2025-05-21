@@ -55,7 +55,7 @@ def main() -> None:
 
     command_group.add_argument(
         "-g",
-        "--generator",
+        "--generate",
         metavar=("<name>", "<arguments>"),
         nargs=2,
         help="Generate a sequence of numbers from a generator with given arguments.",
@@ -64,8 +64,8 @@ def main() -> None:
     command_group.add_argument(
         "-p",
         "--predict",
-        metavar="<count>",
-        help="Number of values to predict. Reads saved states from input.",
+        action="store_true",
+        help="Predict numbers from saved state(s).",
     )
 
     command_group.add_argument(
@@ -126,7 +126,7 @@ def run_with_io(inp: FileStream, out: TextIO, args: Namespace) -> None:
         generate_numbers(out, args)
     elif args.reverse:
         reverse_sequence(inp, out, args.length)
-    elif args.predict is not None:
+    elif args.predict:
         predict_numbers(inp, out, args.length)
     else:
         print("Error: No command given", file=sys.stderr)
