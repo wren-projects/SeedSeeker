@@ -2,6 +2,7 @@
 
 \usepackage[english]{babel}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
@@ -10,7 +11,6 @@
 \usepackage{titlesec}
 \usepackage{hhline}
 \usepackage{menukeys}
-\usepackage{dsfont}
 
 \hypersetup{
     colorlinks=true,
@@ -80,7 +80,7 @@ SeedSeeker operates in three primary modes:
 
 \begin{enumerate}
     \item \textbf{Generation}: Execute a specified generator with a given seed 
-        (see Table~\ref{table:1} for seed formats)
+        (see Table~\ref{table:1} for seed formats). Generators expect integers as input.
     \item \textbf{Reversal}: Attempt to deduce the initial state 
         from output sequences using all applicable reversal algorithms
     \item \textbf{Prediction}: Generate future values from a known initial state
@@ -111,7 +111,7 @@ SeedSeeker operates in three primary modes:
 	\hline
 	ran3 &
 	``$seed$" & 
-  $seed \in \mathds{R}$\\
+  $seed \in \mathbb{Z}$\\
 	\hline
 	Xoshiro256** &
 	``$a;b;c;d$" & 
