@@ -40,7 +40,7 @@ class Ran3(IntegerRNG[Ran3State]):
     def __init__(self, seed: int) -> None:
         """Create a new Ran3 PRNG from the given seed."""
         # simulate Int32's native overflow
-        if seed not in range(self.MIN_INT, self.MAX_INT + 1):
+        if not (self.MIN_INT <= seed < self.MAX_INT + 1):
             seed %= 2**32
             seed -= 2**32
 
