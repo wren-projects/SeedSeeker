@@ -101,24 +101,24 @@ SeedSeeker operates in three primary modes:
 	\bf{Generator} & \bf{Seed Format} & \bf{Conditions} \\
 	\hhline{|=|=|=|}
 	LCG & 
-	"$m;a;c;x_0$" & 
+	``$m;a;c;x_0$" & 
 	$m > 0 \wedge\break 0 < a < m \wedge\break 0\leq c \leq m \wedge\break 0 \leq x_0 < m$\\
 	\hline
 	Lagged Fibonacci & 
-	"$r;s;m;seed$" or \break "$r;s;m;s_0, s_1, ..., s_i$" & 
+	``$r;s;m;seed$" or \break ``$r;s;m;s_0, s_1, ..., s_i$" & 
 	$m > 0 \wedge\break 0 < r < m \wedge\break 0 < s < m \wedge\break r \neq s \wedge\break\break seed > 0 \vee\break
 	s_0, s_1, ..., s_i \geq 0 \wedge\break i = max(r, s)$\\
 	\hline
 	ran3 &
-	"$seed$" & 
+	``$seed$" & 
   $seed \in \mathds{R}$\\
 	\hline
 	Xoshiro256** &
-	"$a;b;c;d$" & 
+	``$a;b;c;d$" & 
 	$a,b,c,d \ge 0 \wedge\break 0 < a,b,c,d \leq 2^{64}$ \\
 	\hline
 	Mersenne Twister&
-	"$seed$" &
+	``$seed$" &
 	$0 \leq seed \leq 2^{32}$ \\
 	\hline
 \end{xltabular}
