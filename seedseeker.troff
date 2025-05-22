@@ -6,7 +6,7 @@ This program has 3 main usage modes
 
 Reversal mode: 
 .in +.5i
-e.g.: python \-m seedseeker -r
+e.g.: python \-m seedseeker \-r
 .br
 Reads a sequence of integers (one per line) from the input, stopping at EOF or empty line. Then
 tries to reverse the generator that produced it and it's state. For each generator where the
@@ -15,7 +15,7 @@ reversal is successful, a line with its name and state will be printed to output
 
 Generation mode: 
 .in +.5i
-python \-m seedseeker -g <name> <arguments> [-l <total>]
+python \-m seedseeker \-g <name> <arguments> [\-l <total>]
 .br
 Generates <total> numbers using the generator <name> with the specified <arguments>.
 The expected formats for generator arguments are detailed in the full documentation.
@@ -23,52 +23,52 @@ The expected formats for generator arguments are detailed in the full documentat
 
 Prediction mode:
 .in +.5i
-python \-m seedseeker -p [-l <total>]
+python \-m seedseeker \-p [\-l <total>]
 .br
 Reads reversed generator states from the input and predicts the next <total> values.
-Default <total> is 16 and can be changed with the -l flag.
+Default <total> is 16 and can be changed with the \-l flag.
 .in
 
 Generally, the program reads input from stdin and writes output to stdout (and errors to stderr).
-This behavior can be modified using the -i and -o flags.
+This behavior can be modified using the \-i and \-o flags.
 
-.SH‌ EXAMPLE
+.SH EXAMPLE
 
-python \-m seedseeker -g mersenne 12345 -l 1000 -o sequence.txt
+python \-m seedseeker \-g mersenne 12345 \-l 1000 \-o sequence.txt
 
-python \-m seedseeker -r -i sequence.txt -o reversed.txt
+python \-m seedseeker \-r \-i sequence.txt \-o reversed.txt
 
-python \-m seedseeker -p -l 10 -i reversed.txt
+python \-m seedseeker \-p \-l 10 \-i reversed.txt
 
 .SH DESCRIPTION
 A tool with the ability to infer internal parameters of PRNGs from a sufficiently sized data sample.
 
--h, --help
+\-h, \-\-help
 .in +.5i
 Show a shortened version of this manual.
 .in
 
--g, --generate <name> <arguments>  
+\-g, \-\-generate <name> <arguments>  
 .in +.5i
 Generates numbers by generator <name> with initial state defined by <arguments>. 
-The number of generated values defaults to 16 and can be changed with the -l
+The number of generated values defaults to 16 and can be changed with the \-l
 flag. This default is intended for human readability, it is recommended to use a
 larger number of values when trying to reverse or otherwise analyze the
 sequence.
 .in
 
--l, --limit <total>
+\-l, \-\-limit <total>
 .in +.5i
 Length of the sequence generated/predicted or limit on the length of the sequence
 to be reversed. Default is 16 or 1024 respectively.
 .in
 
--r, --reverse
+\-r, \-\-reverse
 .in +.5i
 Tries to reverse the given sequence of numbers from input. Prints generator name
 and state for every generator where the reversal succeeded. The state should match
 the end of the input sequence (or the point, where it reaches the limit specified
-with -l).
+with \-l).
 .br
 Note: 
 .in +.5i
@@ -78,29 +78,29 @@ cases the output may not match the expected results (for example, LCG works best
 if the multiplier is coprime with the modulus).
 .in -1i
 
--p, --predict
+\-p, \-\-predict
 .in +.5i
-Predicts future values from a given generator state(s) in the format returned by -r.
-The number of generated values defaults to 16 and can be changed with the -l flag.
+Predicts future values from a given generator state(s) in the format returned by \-r.
+The number of generated values defaults to 16 and can be changed with the \-l flag.
 .br
 For example:
 .in +.5i
-python \-m seedseeker -r -i values.txt -o gen_state.txt
+python \-m seedseeker \-r \-i values.txt \-o gen_state.txt
 .br
-python \-m seedseeker -p -l 10 -i gen_state.txt
+python \-m seedseeker \-p \-l 10 \-i gen_state.txt
 .in -1i
 
--i, --input <file> 
+\-i, \-\-input <file> 
 .in +.5i
 The program will read input from the specified file.
 .in
 
--o, --output <file>
+\-o, \-\-output <file>
 .in +.5i
 Output of the program will be written to the specified file.
 .in
 
--v, --version
+\-v, \-\-version
 .in +.5i
 Program version
 .in
