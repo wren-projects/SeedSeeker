@@ -82,8 +82,19 @@ jobs:
           uv run pyinstaller bin/seedseeker --onefile
 
       - name: Create archive
+        if: ${{ matrix.os != 'windows' }}
         run: |
-          tar caf ./${{ steps.vars.outputs.ARCHIVE }} --directory=dist ${{ steps.vars.outputs.BINARY }}
+          tar caf ./${{ steps.vars.outputs.ARCHIVE }} seedseeker.troff --directory=dist ${{ steps.vars.outputs.BINARY }} ./seedseeker.troff
+
+      - name: Compile manpage for Windows
+        if: ${{ matrix.os == 'windows' }}
+        run: |
+          man -Tpdf ./seedseeker.troff >manpage.pdf
+
+      - name: Create archive for Windows
+        if: ${{ matrix.os == 'windows' }}
+        run: |
+          tar caf ./${{ steps.vars.outputs.ARCHIVE }} manpage.pdf --directory=dist ${{ steps.vars.outputs.BINARY }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
