@@ -35,22 +35,8 @@ jobs:
           script: |
             core.setFailed('CI was not successful')
 
-  release:
-    needs: check-ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release
-        id: create_release
-        run: |
-          gh release create ${{ github.ref_name }} --generate-notes --draft
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   build:
-    needs: release
+    needs: check-ci
     strategy:
       matrix:
         os: [ubuntu, macos, windows]
@@ -105,19 +91,45 @@ jobs:
           name: build-${{ matrix.os }}
           path: ./${{ steps.vars.outputs.ARCHIVE }}
 
-  upload-to-release:
-    needs: build
+  build-docs:
+    needs: check-ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup tectonic
+        uses: wtfjoke/setup-tectonic@v3
+
+      - name: Build documentation
+        run: tectonic doc/doc.tex
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc
+          path: doc/doc.pdf
+
+  upload-to-release:
+    needs: [build, build-docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        id: create_release
+        run: |
+          gh release create ${{ github.ref_name }} --generate-notes --draft
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 
-      - name: Upload artifacts to release
+      - name: Upload binaries to release
         run: |
           for file in ./artifacts/**/*; do
             if [ ! -f "$file" ]; then
